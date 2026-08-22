@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { 
   ArrowLeft, Maximize2, Minimize2, List, RotateCcw, 
-  Play, Sparkles 
+  Play, Sparkles, Crop
 } from 'lucide-react';
 import { buildMovieEmbedUrl, buildTvEmbedUrl } from '../../services/vsembedApi';
 import { getPlaybackProgress, savePlaybackProgress } from '../../services/storageService';
@@ -18,6 +18,7 @@ export default function CinemaPlayer({
   const [currentEpisode, setCurrentEpisode] = useState(initialEpisode);
   const [showEpisodeDrawer, setShowEpisodeDrawer] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [fitMode, setFitMode] = useState('cover'); // 'cover' | 'fit'
   const [resumePrompt, setResumePrompt] = useState(null);
   const [nextEpCountdown, setNextEpCountdown] = useState(null);
   const [autoNext, setAutoNext] = useState(true);
@@ -200,7 +201,7 @@ export default function CinemaPlayer({
   return (
     <div
       ref={playerContainerRef}
-      className={`cinema-player-overlay ${isControlsVisible ? 'controls-active' : 'controls-hidden'}`}
+      className={`cinema-player-overlay mode-${fitMode} ${isControlsVisible ? 'controls-active' : 'controls-hidden'}`}
       onMouseMove={handleMouseMove}
     >
       {/* Top Floating Control Bar */}
@@ -228,6 +229,17 @@ export default function CinemaPlayer({
         </div>
 
         <div className="bar-right">
+          {/* Cover / Fit Ratio Toggle Button */}
+          <button
+            type="button"
+            className={`player-tool-btn ${fitMode === 'cover' ? 'active' : ''}`}
+            onClick={() => setFitMode(fitMode === 'cover' ? 'fit' : 'cover')}
+            title={fitMode === 'cover' ? 'Switch to Original Fit' : 'Switch to Full Screen Cover'}
+          >
+            <Crop size={17} />
+            <span>{fitMode === 'cover' ? 'Cover' : 'Fit'}</span>
+          </button>
+
           {isTv && (
             <button
               type="button"

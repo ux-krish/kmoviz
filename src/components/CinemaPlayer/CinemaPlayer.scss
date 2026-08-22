@@ -186,6 +186,29 @@
     }
   }
 
+  &.mode-cover {
+    .iframe-viewport {
+      .vsembed-iframe {
+        width: 100vw !important;
+        height: 100vh !important;
+        transform: scale(1.15); // Zoom slightly to eliminate letterbox/pillarbox borders
+        transform-origin: center center;
+        transition: transform 0.3s ease;
+      }
+    }
+  }
+
+  &.mode-fit {
+    .iframe-viewport {
+      .vsembed-iframe {
+        width: 100% !important;
+        height: 100% !important;
+        transform: scale(1);
+        transition: transform 0.3s ease;
+      }
+    }
+  }
+
   .iframe-viewport {
     position: absolute;
     inset: 0;
