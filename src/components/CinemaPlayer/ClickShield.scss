@@ -1,0 +1,124 @@
+.click-shield-wrapper {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: contents; // Doesn't affect layout
+
+  // Re-establish as block when inside iframe-viewport
+  .iframe-viewport & {
+    display: block;
+    position: absolute;
+    inset: 0;
+  }
+}
+
+// ─── The Core Shield Overlay ───────────────────────────────────────────────
+// This sits on top of the iframe and intercepts ALL pointer events.
+// When pass-through mode is active (during video control click), it becomes
+// invisible to pointer events so the click reaches the iframe content.
+.click-shield-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 10; // Above iframe, below our UI controls
+  cursor: pointer;
+  
+  // By default: intercepts all clicks (blocks ad-click overlays)
+  pointer-events: all;
+  
+  // Fully transparent — user can see the video through it
+  background: transparent;
+  
+  // Smooth transition when switching between modes
+  transition: pointer-events 0s;
+
+  // Pass-through mode: let clicks reach the iframe
+  // This activates for 180ms on each legitimate click
+  &.pass-through {
+    pointer-events: none;
+  }
+  
+  // Subtle glow on the border to show shield is active
+  &::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border: 2px solid transparent;
+    border-radius: 4px;
+    pointer-events: none;
+    transition: border-color 0.3s ease;
+  }
+}
+
+// ─── Blocked Toast Notification ───────────────────────────────────────────
+// Appears at top-right of player when a popup/ad is blocked
+.adshield-blocked-toast {
+  position: absolute;
+  top: 80px;
+  right: 16px;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.5rem 0.875rem;
+  background: rgba(0, 212, 170, 0.15);
+  border: 1px solid rgba(0, 212, 170, 0.4);
+  border-radius: 100px;
+  color: #00d4aa;
+  font-size: 0.72rem;
+  font-weight: 600;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4), 0 0 20px rgba(0, 212, 170, 0.15);
+  white-space: nowrap;
+  pointer-events: none;
+  
+  animation: toast-in-out 2.5s ease forwards;
+  
+  svg { flex-shrink: 0; }
+}
+
+@keyframes toast-in-out {
+  0%   { opacity: 0; transform: translateY(-8px) scale(0.95); }
+  10%  { opacity: 1; transform: translateY(0) scale(1); }
+  80%  { opacity: 1; transform: translateY(0); }
+  100% { opacity: 0; transform: translateY(-4px); }
+}
+
+// ─── Shield Status Badge ──────────────────────────────────────────────────
+.shield-active-badge {
+  position: absolute;
+  bottom: 12px;
+  left: 12px;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.25rem 0.6rem;
+  background: rgba(0, 0, 0, 0.6);
+  border: 1px solid rgba(0, 212, 170, 0.25);
+  border-radius: 100px;
+  color: rgba(0, 212, 170, 0.7);
+  font-size: 0.6rem;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  pointer-events: none;
+  backdrop-filter: blur(8px);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  
+  // Only show when player controls are visible
+  .controls-active & {
+    opacity: 1;
+  }
+  
+  svg { 
+    color: #00d4aa;
+    animation: zap-pulse 2s ease infinite;
+  }
+}
+
+@keyframes zap-pulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.4; }
+}

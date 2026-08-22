@@ -1,0 +1,77 @@
+@use '../../styles/variables' as *;
+@use '../../styles/mixins' as *;
+
+.netflix-footer {
+  width: 100%;
+  padding: 4rem 4% 3rem;
+  background-color: $netflix-black;
+  color: $netflix-gray;
+  font-size: 0.82rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+
+  .footer-content {
+    max-width: 1000px;
+    margin: 0 auto;
+
+    .footer-top {
+      margin-bottom: 2rem;
+      .footer-contact {
+        cursor: pointer;
+        &:hover {
+          text-decoration: underline;
+        }
+      }
+    }
+
+    .footer-links-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1.5rem;
+      margin-bottom: 2rem;
+
+      @include mobile {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      ul {
+        list-style: none;
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+
+        li a {
+          color: $netflix-gray;
+          transition: color 0.2s;
+
+          &:hover {
+            color: #ffffff;
+            text-decoration: underline;
+          }
+        }
+      }
+    }
+
+    .footer-lang-button {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.4rem 0.9rem;
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      border-radius: 4px;
+      color: $netflix-light-gray;
+      cursor: pointer;
+      margin-bottom: 1.5rem;
+
+      &:hover {
+        border-color: #ffffff;
+      }
+    }
+
+    .footer-bottom {
+      .copyright-text {
+        font-size: 0.75rem;
+        color: rgba(255, 255, 255, 0.3);
+      }
+    }
+  }
+}

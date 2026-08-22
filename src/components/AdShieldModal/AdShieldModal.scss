@@ -1,0 +1,764 @@
+@use '../../styles/variables' as *;
+@use '../../styles/mixins' as *;
+
+// ─── Core Panel ───────────────────────────────────────────
+.adshield-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: asp-backdrop-in 0.2s ease;
+}
+
+@keyframes asp-backdrop-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.adshield-panel {
+  width: min(520px, 95vw);
+  max-height: 92vh;
+  background: linear-gradient(145deg, #0d1117 0%, #161b22 50%, #0d1117 100%);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 20px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.04),
+    0 40px 80px rgba(0, 0, 0, 0.8),
+    0 0 60px rgba(0, 212, 170, 0.06);
+  animation: asp-panel-in 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes asp-panel-in {
+  from { opacity: 0; transform: scale(0.92) translateY(20px); }
+  to   { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+// ─── Header ───────────────────────────────────────────────
+.asp-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.25rem 1.5rem 1rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.asp-brand {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.asp-shield-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+
+  &.active {
+    background: linear-gradient(135deg, rgba(0, 212, 170, 0.2), rgba(0, 212, 170, 0.05));
+    border: 1px solid rgba(0, 212, 170, 0.4);
+    color: #00d4aa;
+    box-shadow: 0 0 20px rgba(0, 212, 170, 0.2);
+  }
+
+  &.inactive {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: #666;
+  }
+}
+
+.asp-brand-text {
+  display: flex;
+  flex-direction: column;
+}
+
+.asp-name {
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: #fff;
+  letter-spacing: 0.5px;
+
+  .asp-pro {
+    color: #00d4aa;
+    font-style: italic;
+  }
+}
+
+.asp-version {
+  font-size: 0.7rem;
+  color: #555;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+.asp-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.asp-status-pill {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.3rem 0.75rem;
+  border-radius: 100px;
+  font-size: 0.65rem;
+  font-weight: 800;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  transition: all 0.3s ease;
+
+  &.on {
+    background: rgba(0, 212, 170, 0.12);
+    border: 1px solid rgba(0, 212, 170, 0.3);
+    color: #00d4aa;
+
+    .asp-status-dot {
+      background: #00d4aa;
+      box-shadow: 0 0 8px #00d4aa;
+    }
+  }
+
+  &.off {
+    background: rgba(239, 68, 68, 0.1);
+    border: 1px solid rgba(239, 68, 68, 0.2);
+    color: #ef4444;
+
+    .asp-status-dot { background: #ef4444; }
+  }
+}
+
+.asp-status-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  animation: pulse-dot 2s ease infinite;
+}
+
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+.asp-close {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: #777;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: #fff;
+  }
+}
+
+// ─── Hero Section ─────────────────────────────────────────
+.asp-hero {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  padding: 1.5rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  transition: all 0.4s ease;
+  position: relative;
+  overflow: hidden;
+
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    transition: opacity 0.4s ease;
+    pointer-events: none;
+  }
+
+  &.hero-on::before {
+    background: radial-gradient(ellipse at center, rgba(0, 212, 170, 0.05) 0%, transparent 70%);
+    opacity: 1;
+  }
+
+  &.hero-off::before {
+    background: radial-gradient(ellipse at center, rgba(239, 68, 68, 0.04) 0%, transparent 70%);
+    opacity: 1;
+  }
+}
+
+.asp-power-btn {
+  position: relative;
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  flex-shrink: 0;
+  border: none;
+
+  &.on {
+    background: linear-gradient(135deg, #00d4aa, #00a87f);
+    color: #fff;
+    box-shadow:
+      0 0 0 6px rgba(0, 212, 170, 0.1),
+      0 0 30px rgba(0, 212, 170, 0.3),
+      0 8px 20px rgba(0, 0, 0, 0.4);
+
+    &:hover {
+      transform: scale(1.06);
+      box-shadow:
+        0 0 0 8px rgba(0, 212, 170, 0.15),
+        0 0 40px rgba(0, 212, 170, 0.5);
+    }
+  }
+
+  &.off {
+    background: linear-gradient(135deg, #374151, #1f2937);
+    color: #6b7280;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+
+    &:hover {
+      transform: scale(1.04);
+      background: linear-gradient(135deg, #4b5563, #374151);
+      color: #9ca3af;
+    }
+  }
+}
+
+.asp-power-ring {
+  position: absolute;
+  inset: -8px;
+  border-radius: 50%;
+  border: 2px solid rgba(0, 212, 170, 0.2);
+  animation: ring-pulse 2.5s ease infinite;
+
+  .off & {
+    display: none;
+  }
+}
+
+@keyframes ring-pulse {
+  0%, 100% { transform: scale(1); opacity: 0.6; }
+  50% { transform: scale(1.1); opacity: 0.1; }
+}
+
+.asp-hero-stats {
+  flex: 1;
+}
+
+.asp-big-counter {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 0.6rem;
+}
+
+.asp-counter-num {
+  font-size: 2.5rem;
+  font-weight: 900;
+  line-height: 1;
+  background: linear-gradient(135deg, #00d4aa, #7dd3fc);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  letter-spacing: -1px;
+  font-variant-numeric: tabular-nums;
+}
+
+.asp-counter-label {
+  font-size: 0.75rem;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-top: 0.2rem;
+}
+
+.asp-mini-stats {
+  display: flex;
+  gap: 1rem;
+}
+
+.asp-mini-stat {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.72rem;
+  color: #9ca3af;
+}
+
+// ─── Tabs ─────────────────────────────────────────────────
+.asp-tabs {
+  display: flex;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  padding: 0 0.75rem;
+}
+
+.asp-tab {
+  flex: 1;
+  padding: 0.75rem 0.5rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #6b7280;
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  cursor: pointer;
+  text-transform: capitalize;
+  transition: all 0.2s ease;
+  letter-spacing: 0.3px;
+
+  &:hover { color: #9ca3af; }
+
+  &.active {
+    color: #00d4aa;
+    border-bottom-color: #00d4aa;
+  }
+}
+
+// ─── Body ─────────────────────────────────────────────────
+.asp-body {
+  flex: 1;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.1) transparent;
+
+  &::-webkit-scrollbar { width: 4px; }
+  &::-webkit-scrollbar-track { background: transparent; }
+  &::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.08); border-radius: 4px; }
+}
+
+.asp-tab-content {
+  padding: 1.25rem 1.5rem;
+}
+
+.asp-section-label {
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: #4b5563;
+  margin-bottom: 0.75rem;
+}
+
+// ─── Overview Stats Grid ──────────────────────────────────
+.asp-stat-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+}
+
+.asp-stat-card {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 12px;
+  padding: 0.875rem;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  overflow: hidden;
+  transition: border-color 0.2s ease;
+
+  &:hover { border-color: rgba(255, 255, 255, 0.12); }
+}
+
+.asp-sc-num {
+  font-size: 1.75rem;
+  font-weight: 900;
+  line-height: 1;
+  letter-spacing: -0.5px;
+  font-variant-numeric: tabular-nums;
+}
+
+.asp-sc-label {
+  font-size: 0.65rem;
+  color: #6b7280;
+  margin-top: 0.3rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.asp-sc-icon {
+  position: absolute;
+  right: 0.75rem;
+  top: 0.75rem;
+  opacity: 0.3;
+}
+
+// ─── Layer Bars ───────────────────────────────────────────
+.asp-layer-bars {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.asp-layer-bar {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.asp-layer-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.asp-layer-name {
+  font-size: 0.73rem;
+  color: #9ca3af;
+  font-weight: 500;
+}
+
+.asp-layer-progress {
+  height: 3px;
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.asp-layer-fill {
+  height: 100%;
+  border-radius: 2px;
+  transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.asp-layer-badge {
+  font-size: 0.6rem;
+  font-weight: 700;
+  letter-spacing: 1px;
+  border: 1px solid;
+  padding: 0.15rem 0.4rem;
+  border-radius: 4px;
+  min-width: 28px;
+  text-align: center;
+}
+
+// ─── Filters Tab ──────────────────────────────────────────
+.asp-filters-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.asp-filter-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.875rem;
+  padding: 1rem;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  transition: all 0.2s ease;
+
+  &.active { border-color: rgba(255, 255, 255, 0.08); }
+  &.inactive { opacity: 0.5; }
+  &:hover { border-color: rgba(255, 255, 255, 0.1); }
+}
+
+.asp-fi-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 9px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.asp-fi-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.asp-fi-title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.83rem;
+  font-weight: 600;
+  color: #e5e7eb;
+}
+
+.asp-fi-badge {
+  font-size: 0.6rem;
+  padding: 0.15rem 0.4rem;
+  border-radius: 4px;
+  font-weight: 600;
+  font-family: monospace;
+  letter-spacing: 0.3px;
+}
+
+.asp-fi-desc {
+  font-size: 0.72rem;
+  color: #6b7280;
+  line-height: 1.4;
+  margin: 0;
+}
+
+.asp-fi-count {
+  font-size: 0.65rem;
+  color: #4b5563;
+  font-variant-numeric: tabular-nums;
+}
+
+// Toggle Switch
+.asp-toggle-switch {
+  position: relative;
+  width: 40px;
+  height: 22px;
+  flex-shrink: 0;
+  cursor: pointer;
+
+  input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+    position: absolute;
+
+    &:checked + .asp-toggle-track {
+      background: #00d4aa;
+      border-color: #00d4aa;
+    }
+
+    &:checked + .asp-toggle-track .asp-toggle-thumb {
+      transform: translateX(18px);
+    }
+
+    &:disabled + .asp-toggle-track {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+  }
+}
+
+.asp-toggle-track {
+  position: absolute;
+  inset: 0;
+  background: #374151;
+  border: 1.5px solid #4b5563;
+  border-radius: 100px;
+  transition: all 0.25s ease;
+  display: flex;
+  align-items: center;
+  padding: 2px;
+}
+
+.asp-toggle-thumb {
+  width: 14px;
+  height: 14px;
+  background: #fff;
+  border-radius: 50%;
+  transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+}
+
+// ─── Blocklist Tab ────────────────────────────────────────
+.asp-blocklist-categories {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  margin-bottom: 1rem;
+}
+
+.asp-bc-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.asp-bc-icon {
+  font-size: 1rem;
+  width: 24px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.asp-bc-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.asp-bc-name {
+  font-size: 0.78rem;
+  color: #9ca3af;
+  font-weight: 500;
+}
+
+.asp-bc-bar {
+  height: 4px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.asp-bc-fill {
+  height: 100%;
+  border-radius: 2px;
+  transition: width 0.5s ease;
+}
+
+.asp-bc-count {
+  font-size: 0.78rem;
+  font-weight: 700;
+  min-width: 28px;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.asp-blocklist-info {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0;
+  font-size: 0.73rem;
+  color: #6b7280;
+  border-top: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+// ─── Log Tab ──────────────────────────────────────────────
+.asp-log-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.asp-log-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.625rem 0.75rem;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  transition: border-color 0.2s ease;
+
+  &:hover { border-color: rgba(255, 255, 255, 0.08); }
+}
+
+.asp-log-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.asp-log-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.asp-log-domain {
+  font-size: 0.73rem;
+  color: #9ca3af;
+  font-family: monospace;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.asp-log-type {
+  font-size: 0.62rem;
+  color: #4b5563;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.asp-log-time {
+  font-size: 0.65rem;
+  color: #4b5563;
+  white-space: nowrap;
+}
+
+.asp-log-empty {
+  text-align: center;
+  padding: 2rem 1rem;
+  color: #4b5563;
+  font-size: 0.8rem;
+
+  p { margin: 0; }
+}
+
+// ─── Footer ───────────────────────────────────────────────
+.asp-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.5rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  gap: 0.75rem;
+}
+
+.asp-btn-reset {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.5rem 0.875rem;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: #9ca3af;
+  font-size: 0.75rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.08);
+    color: #fff;
+  }
+}
+
+.asp-footer-center {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.63rem;
+  color: #4b5563;
+  text-align: center;
+  flex: 1;
+}
+
+.asp-btn-done {
+  padding: 0.5rem 1.25rem;
+  border-radius: 8px;
+  background: linear-gradient(135deg, #00d4aa, #00a87f);
+  border: none;
+  color: #fff;
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+
+  &:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 15px rgba(0, 212, 170, 0.4);
+  }
+}

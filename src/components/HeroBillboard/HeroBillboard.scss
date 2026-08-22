@@ -1,0 +1,332 @@
+@use '../../styles/variables' as *;
+@use '../../styles/mixins' as *;
+
+.hero-billboard {
+  position: relative;
+  width: 100%;
+  height: 85vh;
+  min-height: 550px;
+  max-height: 820px;
+  display: flex;
+  align-items: center;
+  margin-bottom: -4vw;
+  z-index: 10;
+
+  @include mobile {
+    height: 70vh;
+    min-height: 480px;
+  }
+
+  .billboard-media-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    z-index: 1;
+
+    .billboard-backdrop {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-size: cover;
+      background-position: center 20%;
+      transition: opacity 0.8s ease-in-out;
+
+      &.fade-out {
+        opacity: 0.15;
+      }
+    }
+
+    .billboard-video {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      opacity: 0;
+      transition: opacity 0.8s ease-in-out;
+
+      &.visible {
+        opacity: 0.85;
+      }
+    }
+
+    .billboard-gradient-left {
+      position: absolute;
+      top: 0;
+      left: 0;
+      bottom: 0;
+      width: 55%;
+      background: linear-gradient(90deg, rgba(20, 20, 20, 0.98) 0%, rgba(20, 20, 20, 0.75) 45%, rgba(20, 20, 20, 0) 100%);
+      z-index: 2;
+    }
+
+    .billboard-gradient-bottom {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 18vw;
+      background: linear-gradient(180deg, rgba(20, 20, 20, 0) 0%, rgba(20, 20, 20, 0.7) 50%, $netflix-black 100%);
+      z-index: 2;
+    }
+  }
+
+  /* Navigation Arrows */
+  .billboard-nav-arrows {
+    position: absolute;
+    top: 50%;
+    left: 0;
+    right: 0;
+    transform: translateY(-50%);
+    display: flex;
+    justify-content: space-between;
+    padding: 0 1.5rem;
+    z-index: 15;
+    pointer-events: none;
+
+    .nav-arrow-btn {
+      pointer-events: auto;
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      background: rgba(0, 0, 0, 0.4);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      color: #ffffff;
+      @include flex-center;
+      cursor: pointer;
+      opacity: 0;
+      transition: all 0.2s $ease-smooth;
+      backdrop-filter: blur(8px);
+
+      &:hover {
+        background: rgba(229, 9, 20, 0.8);
+        border-color: $netflix-red;
+        transform: scale(1.15);
+      }
+    }
+  }
+
+  &:hover {
+    .billboard-nav-arrows .nav-arrow-btn {
+      opacity: 1;
+    }
+  }
+
+  .billboard-content-wrapper {
+    position: relative;
+    z-index: 5;
+    padding-left: 4%;
+    max-width: 650px;
+    margin-top: 5vh;
+
+    @include mobile {
+      max-width: 90%;
+      margin-top: 8vh;
+    }
+
+    .billboard-meta-badge {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 0.6rem;
+      margin-bottom: 0.8rem;
+
+      .n-series-badge {
+        background-color: $netflix-red;
+        color: #ffffff;
+        font-weight: 900;
+        font-size: 0.75rem;
+        padding: 2px 6px;
+        border-radius: 2px;
+        letter-spacing: 0.5px;
+      }
+
+      .badge-text {
+        font-size: 0.9rem;
+        font-weight: 700;
+        letter-spacing: 0.5px;
+        text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8);
+      }
+
+      .live-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.3rem;
+        background: rgba(255, 255, 255, 0.12);
+        padding: 2px 8px;
+        border-radius: 12px;
+        font-size: 0.72rem;
+        color: $netflix-light-gray;
+        backdrop-filter: blur(4px);
+      }
+    }
+
+    .billboard-title {
+      font-family: 'Bebas Neue', 'Impact', sans-serif;
+      font-size: clamp(3rem, 5.5vw, 5.2rem);
+      line-height: 0.95;
+      letter-spacing: 1.5px;
+      color: #ffffff;
+      text-shadow: 2px 4px 12px rgba(0, 0, 0, 0.95);
+      margin-bottom: 1rem;
+    }
+
+    .billboard-details {
+      .billboard-badges {
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 0.6rem;
+        margin-bottom: 0.9rem;
+
+        .match-rate {
+          color: #46d369;
+          font-weight: 700;
+          font-size: 0.9rem;
+        }
+
+        .age-rating, .quality-badge, .audio-badge {
+          border: 1px solid rgba(255, 255, 255, 0.4);
+          padding: 1px 5px;
+          font-size: 0.75rem;
+          border-radius: 2px;
+          color: $netflix-light-gray;
+          backdrop-filter: blur(4px);
+        }
+      }
+
+      .billboard-overview {
+        font-size: clamp(0.9rem, 1.1vw, 1.05rem);
+        color: #ffffff;
+        line-height: 1.45;
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.8);
+        margin-bottom: 1.5rem;
+        @include line-clamp(3);
+      }
+
+      .billboard-actions {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+
+        .btn-play {
+          @include netflix-button(#ffffff, #000000, rgba(255, 255, 255, 0.8));
+          padding: 0.75rem 2rem;
+          font-size: 1.1rem;
+          font-weight: 700;
+        }
+
+        .btn-info {
+          @include netflix-button(rgba(109, 109, 110, 0.7), #ffffff, rgba(109, 109, 110, 0.4));
+          padding: 0.75rem 1.8rem;
+          font-size: 1.1rem;
+          backdrop-filter: blur(10px);
+        }
+      }
+    }
+
+    /* Carousel Progress Indicators */
+    .billboard-carousel-indicators {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      margin-top: 1.8rem;
+
+      .indicators-list {
+        display: flex;
+        gap: 0.35rem;
+
+        .indicator-bar {
+          position: relative;
+          width: 28px;
+          height: 3.5px;
+          background: rgba(255, 255, 255, 0.25);
+          border: none;
+          border-radius: 2px;
+          cursor: pointer;
+          overflow: hidden;
+          padding: 0;
+          transition: background 0.2s;
+
+          &:hover {
+            background: rgba(255, 255, 255, 0.5);
+          }
+
+          &.active {
+            background: rgba(255, 255, 255, 0.35);
+          }
+
+          .indicator-progress-fill {
+            position: absolute;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            background-color: $netflix-red;
+            animation-name: progressFillAnim;
+            animation-timing-function: linear;
+            animation-fill-mode: forwards;
+          }
+        }
+      }
+
+      .slide-counter {
+        font-size: 0.72rem;
+        color: $netflix-gray;
+        font-weight: 600;
+      }
+    }
+  }
+
+  .billboard-side-controls {
+    position: absolute;
+    right: 0;
+    bottom: 28%;
+    z-index: 5;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+
+    .control-circle-btn {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      border: 1px solid rgba(255, 255, 255, 0.5);
+      background: rgba(0, 0, 0, 0.4);
+      color: #ffffff;
+      @include flex-center;
+      transition: all 0.2s;
+      cursor: pointer;
+      backdrop-filter: blur(6px);
+
+      &:hover {
+        background: rgba(255, 255, 255, 0.2);
+        border-color: #ffffff;
+        transform: scale(1.1);
+      }
+    }
+
+    .maturity-rating-tag {
+      background: rgba(51, 51, 51, 0.6);
+      border-left: 3px solid #dcdcdc;
+      padding: 0.4rem 1.5rem 0.4rem 0.8rem;
+      font-size: 0.85rem;
+      font-weight: 600;
+      backdrop-filter: blur(4px);
+    }
+  }
+}
+
+@keyframes progressFillAnim {
+  0% {
+    width: 0%;
+  }
+  100% {
+    width: 100%;
+  }
+}

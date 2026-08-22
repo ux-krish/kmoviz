@@ -1,0 +1,443 @@
+@use '../../styles/variables' as *;
+@use '../../styles/mixins' as *;
+
+.kmoviz-header-wrapper {
+  position: relative;
+  z-index: 1000;
+}
+
+.kmoviz-navbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 72px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 4%;
+  z-index: 1000;
+  background: linear-gradient(180deg, rgba(8, 8, 8, 0.95) 0%, rgba(8, 8, 8, 0.6) 65%, transparent 100%);
+  transition: all 0.35s cubic-bezier(0.2, 0, 0.2, 1);
+
+  &.scrolled {
+    background: rgba(10, 10, 10, 0.88);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.8);
+  }
+
+  .nav-left {
+    display: flex;
+    align-items: center;
+    gap: 2.2rem;
+
+    .kmoviz-logo {
+      display: flex;
+      align-items: center;
+      cursor: pointer;
+      user-select: none;
+      gap: 3px;
+      transition: transform 0.2s ease;
+
+      &:hover {
+        transform: scale(1.02);
+      }
+
+      .logo-icon-wrapper {
+        position: relative;
+        width: 38px;
+        height: 38px;
+        background: linear-gradient(135deg, #e50914 0%, #ff4b2b 100%);
+        border-radius: 8px;
+        @include flex-center;
+        box-shadow: 0 0 18px rgba(229, 9, 20, 0.65);
+        margin-right: 4px;
+
+        .logo-letter {
+          font-family: 'Bebas Neue', 'Impact', sans-serif;
+          font-size: 1.85rem;
+          color: #ffffff;
+          font-weight: 900;
+          line-height: 1;
+        }
+
+        .play-triangle {
+          position: absolute;
+          bottom: 4px;
+          right: 4px;
+          width: 0;
+          height: 0;
+          border-left: 6px solid #ffffff;
+          border-top: 4px solid transparent;
+          border-bottom: 4px solid transparent;
+        }
+      }
+
+      .logo-text {
+        font-family: 'Bebas Neue', 'Impact', sans-serif;
+        font-size: 2.1rem;
+        letter-spacing: 2px;
+        color: #ffffff;
+        text-shadow: 0 0 14px rgba(255, 255, 255, 0.35);
+
+        @include mobile {
+          font-size: 1.6rem;
+        }
+      }
+
+      .pro-tag {
+        background: linear-gradient(90deg, #ff8a00, #e50914);
+        color: #ffffff;
+        font-size: 0.65rem;
+        font-weight: 900;
+        padding: 2px 6px;
+        border-radius: 4px;
+        margin-left: 5px;
+        letter-spacing: 0.8px;
+        box-shadow: 0 0 8px rgba(229, 9, 20, 0.4);
+      }
+    }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      list-style: none;
+      gap: 1.35rem;
+
+      @include mobile {
+        display: none;
+      }
+
+      li {
+        font-size: 0.88rem;
+        font-weight: 500;
+        color: rgba(255, 255, 255, 0.7);
+        cursor: pointer;
+        transition: all 0.2s $ease-smooth;
+        position: relative;
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+        padding: 0.4rem 0;
+
+        &:hover {
+          color: #ffffff;
+        }
+
+        &.active {
+          font-weight: 700;
+          color: #ffffff;
+
+          &::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            right: 0;
+            height: 2.5px;
+            background: linear-gradient(90deg, #e50914, #ff4b2b);
+            border-radius: 2px;
+            box-shadow: 0 0 10px rgba(229, 9, 20, 0.8);
+          }
+        }
+
+        .nav-badge {
+          background-color: $netflix-red;
+          color: #ffffff;
+          font-size: 0.68rem;
+          padding: 1px 6px;
+          border-radius: 10px;
+          font-weight: 800;
+          box-shadow: 0 0 8px rgba(229, 9, 20, 0.5);
+        }
+      }
+    }
+  }
+
+  .nav-right {
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+
+    /* 🎲 Surprise Me Button */
+    .surprise-nav-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.45rem;
+      background: linear-gradient(135deg, rgba(255, 138, 0, 0.15), rgba(229, 9, 20, 0.2));
+      border: 1px solid rgba(255, 138, 0, 0.5);
+      color: #ffaa40;
+      padding: 0.45rem 0.9rem;
+      border-radius: 20px;
+      font-size: 0.82rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.25s $ease-smooth;
+
+      .dices-icon {
+        transition: transform 0.3s ease;
+      }
+
+      &:hover {
+        background: linear-gradient(135deg, #ff8a00, #e50914);
+        color: #ffffff;
+        border-color: #ff8a00;
+        box-shadow: 0 0 16px rgba(255, 138, 0, 0.55);
+        transform: translateY(-1px);
+
+        .dices-icon {
+          transform: rotate(45deg);
+        }
+      }
+
+      @include mobile {
+        span {
+          display: none;
+        }
+        padding: 0.5rem;
+      }
+    }
+
+    /* ▶ Direct Stream Launcher Button */
+    .custom-stream-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.45rem;
+      background: rgba(229, 9, 20, 0.14);
+      border: 1px solid rgba(229, 9, 20, 0.5);
+      color: #ffffff;
+      padding: 0.45rem 0.9rem;
+      border-radius: 20px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.25s $ease-smooth;
+
+      .play-icon {
+        color: $netflix-red;
+        fill: $netflix-red;
+        transition: all 0.2s ease;
+      }
+
+      &:hover {
+        background: $netflix-red;
+        border-color: $netflix-red;
+        box-shadow: 0 0 16px rgba(229, 9, 20, 0.65);
+        transform: translateY(-1px);
+
+        .play-icon {
+          color: #ffffff;
+          fill: #ffffff;
+        }
+      }
+
+      @include mobile {
+        span {
+          display: none;
+        }
+        padding: 0.5rem;
+      }
+    }
+
+    /* Search Bar */
+    .nav-search-container {
+      display: flex;
+      align-items: center;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 20px;
+      padding: 0.35rem 0.65rem;
+      transition: all 0.3s cubic-bezier(0.2, 0, 0.2, 1);
+      width: 36px;
+      height: 36px;
+      overflow: hidden;
+      box-sizing: border-box;
+
+      .search-btn {
+        background: none;
+        border: none;
+        color: rgba(255, 255, 255, 0.7);
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0;
+        transition: color 0.2s ease;
+
+        &:hover {
+          color: #ffffff;
+        }
+      }
+
+      input {
+        background: none;
+        border: none;
+        outline: none;
+        color: #ffffff;
+        font-size: 0.85rem;
+        margin-left: 0.5rem;
+        width: 0;
+        opacity: 0;
+        transition: width 0.3s ease, opacity 0.3s ease;
+
+        &::placeholder {
+          color: rgba(255, 255, 255, 0.4);
+        }
+      }
+
+      .clear-search-btn {
+        background: none;
+        border: none;
+        color: rgba(255, 255, 255, 0.5);
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        padding: 2px;
+        transition: color 0.2s ease;
+
+        &:hover {
+          color: #ffffff;
+        }
+      }
+
+      &.open {
+        width: clamp(200px, 24vw, 320px);
+        background: rgba(20, 20, 20, 0.95);
+        border-color: rgba(229, 9, 20, 0.6);
+        box-shadow: 0 0 16px rgba(229, 9, 20, 0.25);
+
+        input {
+          width: 100%;
+          opacity: 1;
+        }
+      }
+    }
+
+    /* Notifications Dropdown */
+    .nav-notifications {
+      position: relative;
+
+      .notif-btn {
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        color: rgba(255, 255, 255, 0.75);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        position: relative;
+        transition: all 0.2s ease;
+
+        &:hover {
+          background: rgba(255, 255, 255, 0.12);
+          color: #ffffff;
+          border-color: rgba(255, 255, 255, 0.25);
+        }
+
+        .notif-dot {
+          position: absolute;
+          top: 7px;
+          right: 7px;
+          width: 7px;
+          height: 7px;
+          border-radius: 50%;
+          background-color: $netflix-red;
+          box-shadow: 0 0 8px $netflix-red;
+        }
+      }
+
+      .notif-dropdown {
+        position: absolute;
+        top: calc(100% + 12px);
+        right: 0;
+        width: 320px;
+        background: #141414;
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        border-radius: 12px;
+        box-shadow: 0 16px 40px rgba(0, 0, 0, 0.95);
+        overflow: hidden;
+        animation: fadeIn 0.25s ease-out;
+
+        .notif-header {
+          padding: 0.85rem 1rem;
+          background: rgba(255, 255, 255, 0.03);
+          border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+          font-size: 0.85rem;
+          font-weight: 700;
+          color: #ffffff;
+          display: flex;
+          align-items: center;
+          gap: 0.4rem;
+
+          .sparkle-icon {
+            color: $netflix-red;
+          }
+        }
+
+        .notif-items-list {
+          display: flex;
+          flex-direction: column;
+
+          .notif-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.85rem 1rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            transition: background-color 0.2s ease;
+            cursor: pointer;
+
+            &:last-child {
+              border-bottom: none;
+            }
+
+            &:hover {
+              background: rgba(255, 255, 255, 0.04);
+            }
+
+            .notif-img {
+              width: 50px;
+              height: 70px;
+              border-radius: 6px;
+              background-size: cover;
+              background-position: center;
+              flex-shrink: 0;
+              border: 1px solid rgba(255, 255, 255, 0.1);
+            }
+
+            .notif-text {
+              flex: 1;
+
+              .title {
+                font-size: 0.82rem;
+                font-weight: 700;
+                color: #ffffff;
+                margin-bottom: 2px;
+              }
+
+              .desc {
+                font-size: 0.72rem;
+                color: rgba(255, 255, 255, 0.6);
+                line-height: 1.35;
+                margin-bottom: 4px;
+              }
+
+              .time {
+                font-size: 0.65rem;
+                color: $netflix-red;
+                font-weight: 700;
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
