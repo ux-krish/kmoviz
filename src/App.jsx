@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import Navbar from './components/Navbar/Navbar';
 import HeroBillboard from './components/HeroBillboard/HeroBillboard';
 import MediaRow from './components/MediaRow/MediaRow';
