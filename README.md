@@ -10,7 +10,7 @@
 
 **KMOVIZ** is a next-generation streaming web application designed to deliver an ad-free, ultra-fast 4K cinema experience for brand new movies, TV series, and regional blockbusters.
 
-[🚀 **Live Demo on GitHub Pages**](https://<YOUR_GITHUB_USERNAME>.github.io/kmoviz/) • [✨ Features](#-key-features) • [⚡ Getting Started](#-getting-started) • [📦 Deployment](#-github-pages-deployment)
+[🚀 **Live Demo on GitHub Pages**](https://ux-krish.github.io/kmoviz/) • [✨ Features](#-key-features) • [⚡ Getting Started](#-getting-started) • [📦 Deployment](#-github-pages-deployment)
 
 </div>
 
@@ -71,7 +71,7 @@
 
 1. **Clone the repository**:
    ```bash
-   git clone https://github.com/<YOUR_GITHUB_USERNAME>/kmoviz.git
+   git clone https://github.com/ux-krish/kmoviz.git
    cd kmoviz
    ```
 
@@ -100,7 +100,7 @@ This repository includes a ready-to-use GitHub Actions workflow located at `.git
 
 1. Push your repository to GitHub:
    ```bash
-   git remote add origin https://github.com/<YOUR_GITHUB_USERNAME>/kmoviz.git
+   git remote add origin https://github.com/ux-krish/kmoviz.git
    git branch -M main
    git push -u origin main
    ```
@@ -109,7 +109,7 @@ This repository includes a ready-to-use GitHub Actions workflow located at `.git
    - Under **Build and deployment** → **Source**, select **GitHub Actions**.
 3. Every push to `main` will automatically build and publish your app to:
    ```
-   https://<YOUR_GITHUB_USERNAME>.github.io/kmoviz/
+   https://ux-krish.github.io/kmoviz/
    ```
 
 ### Option B: Manual CLI Deployment
