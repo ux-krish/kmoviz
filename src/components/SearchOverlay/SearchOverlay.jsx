@@ -1,6 +1,6 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import MediaCard from '../MediaCard/MediaCard';
-import { Search, Film, Tv, SlidersHorizontal, Sparkles, Loader2 } from 'lucide-react';
+import { Search, Film, Tv, Sparkles, Loader2, Check, X, Filter } from 'lucide-react';
 import { searchGlobalCatalog } from '../../services/movieCatalogService';
 import './SearchOverlay.scss';
 
@@ -17,7 +17,18 @@ export default function SearchOverlay({
   const [isLoading, setIsLoading] = useState(false);
   const debounceTimerRef = useRef(null);
 
-  const allGenres = ['All', 'Action', 'Sci-Fi', 'Drama', 'Adventure', 'Mystery', 'Animation', 'Comedy', 'Horror', 'Thriller'];
+  const allGenres = [
+    { id: 'all', label: 'All Genres' },
+    { id: 'action', label: 'Action' },
+    { id: 'sci-fi', label: 'Sci-Fi' },
+    { id: 'drama', label: 'Drama' },
+    { id: 'adventure', label: 'Adventure' },
+    { id: 'mystery', label: 'Mystery' },
+    { id: 'animation', label: 'Animation' },
+    { id: 'comedy', label: 'Comedy' },
+    { id: 'horror', label: 'Horror' },
+    { id: 'thriller', label: 'Thriller' }
+  ];
 
   useEffect(() => {
     if (!query || !query.trim()) {
@@ -45,78 +56,119 @@ export default function SearchOverlay({
     };
   }, [query]);
 
-  const activePool = query.trim() ? searchResults : defaultItems;
+  const activePool = query && query.trim() ? searchResults : defaultItems;
 
-  // Filter items by genre and type
-  const filteredItems = activePool.filter((item) => {
-    // Genre filter
-    const matchesGenre = selectedGenre === 'all' || item.genres?.some(g => g.toLowerCase().includes(selectedGenre.toLowerCase()));
+  // Filter items by genre and type robustly
+  const filteredItems = useMemo(() => {
+    return activePool.filter((item) => {
+      // Genre filter
+      const matchesGenre = selectedGenre === 'all' || (
+        Array.isArray(item.genres) 
+          ? item.genres.some(g => String(g).toLowerCase().includes(selectedGenre.toLowerCase()))
+          : typeof item.genres === 'string' && item.genres.toLowerCase().includes(selectedGenre.toLowerCase())
+      ) || (item.overview && item.overview.toLowerCase().includes(selectedGenre.toLowerCase()));
 
-    // Type filter
-    const matchesType = selectedType === 'all' || item.type === selectedType;
+      // Type filter
+      const matchesType = selectedType === 'all' || item.type === selectedType;
 
-    return matchesGenre && matchesType;
-  });
+      return matchesGenre && matchesType;
+    });
+  }, [activePool, selectedGenre, selectedType]);
+
+  const handleResetFilters = () => {
+    setSelectedGenre('all');
+    setSelectedType('all');
+  };
+
+  const hasActiveFilters = selectedGenre !== 'all' || selectedType !== 'all';
 
   return (
     <div className="search-overlay-view">
       <div className="search-header-panel">
         <div className="search-title-row">
-          <h2>
-            {query ? (
-              <>
-                Results for <span className="query-highlight">"{query}"</span>
-              </>
-            ) : (
-              'Explore All Movies & TV Series'
-            )}
-          </h2>
-          <span className="results-count">
-            {isLoading ? (
-              <span className="loading-tag">
-                <Loader2 size={16} className="spin" /> Searching global catalogue...
+          <div className="title-left">
+            <h2>
+              {query ? (
+                <>
+                  Results for <span className="query-highlight">"{query}"</span>
+                </>
+              ) : (
+                'Explore All Movies & TV Series'
+              )}
+            </h2>
+            {hasActiveFilters && (
+              <span className="active-filter-badge">
+                Filtered by {selectedGenre !== 'all' ? selectedGenre.toUpperCase() : ''}{' '}
+                {selectedType !== 'all' ? `(${selectedType === 'movie' ? 'Movies' : 'TV Shows'})` : ''}
               </span>
-            ) : (
-              `${filteredItems.length} titles found`
             )}
-          </span>
+          </div>
+
+          <div className="title-right">
+            <span className="results-count">
+              {isLoading ? (
+                <span className="loading-tag">
+                  <Loader2 size={16} className="spin" /> Searching 10,000+ titles...
+                </span>
+              ) : (
+                <span className="count-pill">{filteredItems.length} titles</span>
+              )}
+            </span>
+
+            {hasActiveFilters && (
+              <button className="reset-filters-btn" onClick={handleResetFilters}>
+                <X size={14} />
+                <span>Reset Filters</span>
+              </button>
+            )}
+          </div>
         </div>
 
-        {/* Filters bar */}
+        {/* Interactive Filter Controls */}
         <div className="search-filters-bar">
+          {/* Genre Selection Pills */}
           <div className="genre-pills">
             {allGenres.map((g) => {
-              const val = g === 'All' ? 'all' : g;
+              const isActive = selectedGenre === g.id;
               return (
                 <button
-                  key={g}
-                  className={`genre-pill ${selectedGenre === val ? 'active' : ''}`}
-                  onClick={() => setSelectedGenre(val)}
+                  key={g.id}
+                  type="button"
+                  className={`genre-pill ${isActive ? 'active' : ''}`}
+                  onClick={() => setSelectedGenre(g.id)}
                 >
-                  {g}
+                  {isActive && <Check size={13} strokeWidth={3} className="pill-check" />}
+                  <span>{g.label}</span>
                 </button>
               );
             })}
           </div>
 
+          {/* Media Type Segmented Switch */}
           <div className="type-toggle">
             <button
+              type="button"
               className={`type-btn ${selectedType === 'all' ? 'active' : ''}`}
               onClick={() => setSelectedType('all')}
             >
-              All
+              <Sparkles size={14} />
+              <span>All</span>
             </button>
             <button
+              type="button"
               className={`type-btn ${selectedType === 'movie' ? 'active' : ''}`}
               onClick={() => setSelectedType('movie')}
             >
-              Movies
+              <Film size={14} />
+              <span>Movies</span>
             </button>
             <button
+              type="button"
               className={`type-btn ${selectedType === 'tv' ? 'active' : ''}`}
               onClick={() => setSelectedType('tv')}
             >
-              TV Shows
+              <Tv size={14} />
+              <span>TV Shows</span>
             </button>
           </div>
         </div>
@@ -137,13 +189,20 @@ export default function SearchOverlay({
         </div>
       ) : (
         <div className="search-empty-state">
-          <Sparkles size={48} className="empty-icon" />
-          <h3>{isLoading ? 'Searching...' : 'No titles found'}</h3>
+          <div className="empty-icon-box">
+            <Search size={44} />
+          </div>
+          <h3>No titles found for your criteria</h3>
           <p>
-            {isLoading 
-              ? 'Fetching titles from the global movie database...' 
-              : 'Try searching for another movie name (e.g., Dune, Fallout, Gladiator, Oppenheimer) or an actor.'}
+            {hasActiveFilters
+              ? 'Try resetting the genre or format filters above to see all available movies and series.'
+              : 'Try searching for another movie name (e.g., Dune, Fallout, Gladiator, Spider-Man) or actor.'}
           </p>
+          {hasActiveFilters && (
+            <button className="btn-empty-reset" onClick={handleResetFilters}>
+              Clear Filters
+            </button>
+          )}
         </div>
       )}
     </div>
