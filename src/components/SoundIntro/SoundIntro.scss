@@ -7,45 +7,54 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: #000000;
+  background-color: #060606;
   z-index: 10000;
   @include flex-center;
   cursor: pointer;
+  pointer-events: none;
 
   .kmoviz-intro-branding {
-    font-family: 'Bebas Neue', 'Impact', sans-serif;
-    font-size: clamp(5rem, 14vw, 12rem);
-    font-weight: 900;
-    letter-spacing: 4px;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
     user-select: none;
 
-    .k-neon {
-      color: $netflix-red;
-      text-shadow: 0 0 40px rgba(229, 9, 20, 0.9), 0 0 80px rgba(229, 9, 20, 0.5);
+    .splash-icon {
+      width: clamp(55px, 9vw, 90px);
+      height: clamp(55px, 9vw, 90px);
+      background: linear-gradient(135deg, #e50914 0%, #ff4b2b 100%);
+      border-radius: 18px;
+      @include flex-center;
+      box-shadow: 0 0 45px rgba(229, 9, 20, 0.85);
+
+      .splash-letter {
+        font-family: 'Bebas Neue', 'Impact', sans-serif;
+        font-size: clamp(3rem, 5.5vw, 5.2rem);
+        color: #ffffff;
+        font-weight: 900;
+        line-height: 1;
+      }
     }
 
-    .text-white {
+    .splash-text {
+      font-family: 'Bebas Neue', 'Impact', sans-serif;
+      font-size: clamp(3.8rem, 7vw, 6.8rem);
+      letter-spacing: 4px;
       color: #ffffff;
-      text-shadow: 0 0 30px rgba(255, 255, 255, 0.4);
+      text-shadow: 0 0 35px rgba(255, 255, 255, 0.4);
     }
-  }
 
-  .skip-intro-btn {
-    position: absolute;
-    bottom: 2rem;
-    right: 2rem;
-    background: rgba(255, 255, 255, 0.1);
-    border: 1px solid rgba(255, 255, 255, 0.3);
-    color: $netflix-light-gray;
-    padding: 0.4rem 1rem;
-    border-radius: 4px;
-    font-size: 0.8rem;
-    cursor: pointer;
-    transition: all 0.2s;
-
-    &:hover {
-      background: rgba(255, 255, 255, 0.25);
+    .splash-pro {
+      background: linear-gradient(90deg, #ff8a00, #e50914);
       color: #ffffff;
+      font-size: clamp(1rem, 1.8vw, 1.6rem);
+      font-weight: 900;
+      padding: 4px 10px;
+      border-radius: 8px;
+      letter-spacing: 1.5px;
+      box-shadow: 0 0 20px rgba(229, 9, 20, 0.6);
+      align-self: flex-start;
+      margin-top: 10px;
     }
   }
 }

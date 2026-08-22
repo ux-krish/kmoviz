@@ -7,6 +7,7 @@ import CinemaPlayer from './components/CinemaPlayer/CinemaPlayer';
 import SearchOverlay from './components/SearchOverlay/SearchOverlay';
 import WatchlistView from './components/WatchlistView/WatchlistView';
 import SurpriseModal from './components/SurpriseModal/SurpriseModal';
+import SoundIntro from './components/SoundIntro/SoundIntro';
 import Footer from './components/Footer/Footer';
 
 import { CATALOG } from './data/mockCatalog';
@@ -47,6 +48,7 @@ const SPIDERMAN_HERO = {
 };
 
 export default function App() {
+  const [showIntro, setShowIntro] = useState(true);
   const [activeTab, setActiveTab] = useState('home'); // 'home' | 'movies' | 'tvshows' | 'regional' | 'mylist'
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearchOpen, setIsSearchOpen] = useState(false);
@@ -219,7 +221,10 @@ export default function App() {
 
   return (
     <div className="app-container">
-      {/* Top Navbar with uBlock AdShield Button */}
+      {/* Silent Visual Brand Splash Animation */}
+      {showIntro && <SoundIntro onFinish={() => setShowIntro(false)} />}
+
+      {/* Top Navbar */}
       <Navbar
         activeTab={activeTab}
         onSelectTab={(tab) => {
