@@ -4,7 +4,6 @@ import HeroBillboard from './components/HeroBillboard/HeroBillboard';
 import MediaRow from './components/MediaRow/MediaRow';
 import DetailModal from './components/DetailModal/DetailModal';
 import CinemaPlayer from './components/CinemaPlayer/CinemaPlayer';
-import CustomPlayerModal from './components/CustomPlayerModal/CustomPlayerModal';
 import SearchOverlay from './components/SearchOverlay/SearchOverlay';
 import WatchlistView from './components/WatchlistView/WatchlistView';
 import SurpriseModal from './components/SurpriseModal/SurpriseModal';
@@ -57,7 +56,6 @@ export default function App() {
   // Modals & Player State
   const [detailItem, setDetailItem] = useState(null);
   const [playerState, setPlayerState] = useState(null); // { item, season, episode }
-  const [isCustomPlayerOpen, setIsCustomPlayerOpen] = useState(false);
   const [isSurpriseOpen, setIsSurpriseOpen] = useState(false);
 
   // Local Storage State
@@ -225,7 +223,6 @@ export default function App() {
         onOpenSearch={(open) => setIsSearchOpen(open)}
         searchQuery={searchQuery}
         onSearchChange={(q) => setSearchQuery(q)}
-        onOpenCustomPlayer={() => setIsCustomPlayerOpen(true)}
         onOpenSurprise={() => setIsSurpriseOpen(true)}
         watchlistCount={watchlist.length}
       />
@@ -401,13 +398,6 @@ export default function App() {
           initialEpisode={playerState.episode}
           onClose={() => setPlayerState(null)}
           onUpdateHistory={refreshStorage}
-        />
-      )}
-
-      {isCustomPlayerOpen && (
-        <CustomPlayerModal
-          onClose={() => setIsCustomPlayerOpen(false)}
-          onLaunchStream={handleLaunchCustomStream}
         />
       )}
 

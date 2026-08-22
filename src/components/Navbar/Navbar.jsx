@@ -8,7 +8,6 @@ export default function Navbar({
   onOpenSearch,
   searchQuery,
   onSearchChange,
-  onOpenCustomPlayer,
   onOpenSurprise,
   watchlistCount = 0
 }) {
@@ -106,16 +105,6 @@ export default function Navbar({
           >
             <Dices size={16} className="dices-icon" />
             <span>Surprise Me</span>
-          </button>
-
-          {/* ▶ Direct Stream / Universal Engine Launcher Button */}
-          <button 
-            className="custom-stream-btn"
-            title="Direct IMDB / TMDB Stream Engine"
-            onClick={onOpenCustomPlayer}
-          >
-            <Play size={14} className="play-icon" />
-            <span>Direct Stream</span>
           </button>
 
           {/* Interactive Search Bar */}
