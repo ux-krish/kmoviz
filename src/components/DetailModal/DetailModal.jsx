@@ -27,7 +27,11 @@ export default function DetailModal({
   const [inList, setInList] = useState(isInWatchlist(initialItem.id || initialItem.imdb_id));
   const [isLiked, setIsLiked] = useState(getLikedItems()[initialItem.id || initialItem.imdb_id] === 'like');
 
+  const backdropRef = useRef(null);
   const modalRef = useRef(null);
+  const heroBackdropRef = useRef(null);
+  const bodyContentRef = useRef(null);
+
   const isTv = item.type === 'tv' || Boolean(item.seasons);
 
   // Fetch full series episode tree if TV show doesn't have seasons yet
@@ -42,17 +46,47 @@ export default function DetailModal({
     }
   }, [initialItem]);
 
+  // GSAP Ultra Legendary Pop Opening Animation
   useEffect(() => {
-    // GSAP entrance
     const ctx = gsap.context(() => {
-      gsap.fromTo(
-        modalRef.current,
-        { scale: 0.88, opacity: 0, y: 30 },
-        { scale: 1, opacity: 1, y: 0, duration: 0.3, ease: 'power3.out' }
-      );
+      // 1. Backdrop fade in
+      if (backdropRef.current) {
+        gsap.fromTo(
+          backdropRef.current,
+          { opacity: 0 },
+          { opacity: 1, duration: 0.35, ease: 'power2.out' }
+        );
+      }
+
+      // 2. 3D Pop Perspective Unfold
+      if (modalRef.current) {
+        gsap.fromTo(
+          modalRef.current,
+          { scale: 0.82, opacity: 0, y: 45 },
+          { scale: 1, opacity: 1, y: 0, duration: 0.48, ease: 'power3.out' }
+        );
+      }
+
+      // 3. Hero backdrop subtle scale-in
+      if (heroBackdropRef.current) {
+        gsap.fromTo(
+          heroBackdropRef.current,
+          { scale: 1.12, opacity: 0.4 },
+          { scale: 1, opacity: 1, duration: 0.8, ease: 'power2.out' }
+        );
+      }
+
+      // 4. Body content slide-in
+      if (bodyContentRef.current) {
+        gsap.fromTo(
+          bodyContentRef.current,
+          { opacity: 0, y: 20 },
+          { opacity: 1, y: 0, duration: 0.45, delay: 0.15, ease: 'power2.out' }
+        );
+      }
     });
 
-    // Disable body scroll
+    // Disable body scroll while modal is active
     document.body.style.overflow = 'hidden';
 
     return () => {
@@ -60,6 +94,26 @@ export default function DetailModal({
       document.body.style.overflow = 'auto';
     };
   }, []);
+
+  const handleClose = () => {
+    if (modalRef.current && backdropRef.current) {
+      gsap.to(modalRef.current, {
+        scale: 0.85,
+        opacity: 0,
+        y: 25,
+        duration: 0.22,
+        ease: 'power2.in'
+      });
+      gsap.to(backdropRef.current, {
+        opacity: 0,
+        duration: 0.22,
+        ease: 'power2.in',
+        onComplete: onClose
+      });
+    } else {
+      onClose();
+    }
+  };
 
   const handleToggleWatchlist = () => {
     toggleWatchlist(item);
@@ -78,20 +132,21 @@ export default function DetailModal({
   const backdropUrl = resolveImageUrl(item.backdrop || item.poster, true);
 
   return (
-    <div className="netflix-modal-backdrop" onClick={onClose}>
+    <div ref={backdropRef} className="netflix-modal-backdrop" onClick={handleClose}>
       <div
         ref={modalRef}
         className="netflix-modal-container"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Close Button */}
-        <button className="modal-close-btn" onClick={onClose} title="Close">
+        <button className="modal-close-btn" onClick={handleClose} title="Close">
           <X size={22} />
         </button>
 
         {/* Modal Hero Banner Header */}
         <div className="modal-header-hero">
           <div
+            ref={heroBackdropRef}
             className="modal-header-backdrop"
             style={{ backgroundImage: `url(${backdropUrl})` }}
           />
@@ -128,7 +183,7 @@ export default function DetailModal({
         </div>
 
         {/* Modal Body Details */}
-        <div className="modal-body-content">
+        <div ref={bodyContentRef} className="modal-body-content">
           <div className="modal-meta-grid">
             <div className="meta-left-col">
               <div className="modal-badges-row">

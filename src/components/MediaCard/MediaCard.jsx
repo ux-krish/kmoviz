@@ -1,6 +1,7 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useRef } from 'react';
 import { Play, Plus, Check, ThumbsUp, ChevronDown } from 'lucide-react';
 import { isInWatchlist, toggleWatchlist, getPlaybackProgress, getLikedItems, toggleLike } from '../../services/storageService';
+import gsap from 'gsap';
 import './MediaCard.scss';
 
 // Safe image URL resolver - prioritizes official poster artwork
@@ -26,7 +27,69 @@ export default function MediaCard({
   const [isLiked, setIsLiked] = useState(() => getLikedItems()[itemId] === 'like');
   const [imgError, setImgError] = useState(false);
 
+  const cardRef = useRef(null);
+  const overlayRef = useRef(null);
+  const actionsRef = useRef(null);
+
   const progress = getPlaybackProgress(itemId);
+
+  // ── GSAP Ultra Smooth Hover Animations ─────────────────────────────────────
+  const handleMouseEnter = () => {
+    if (window.matchMedia('(hover: hover)').matches && cardRef.current) {
+      gsap.killTweensOf([cardRef.current, overlayRef.current, actionsRef.current]);
+      
+      // Card 3D pop lift
+      gsap.to(cardRef.current, {
+        scale: 1.07,
+        y: -6,
+        duration: 0.35,
+        ease: 'power3.out',
+        overwrite: 'auto'
+      });
+
+      // Overlay smooth reveal
+      if (overlayRef.current) {
+        gsap.to(overlayRef.current, {
+          opacity: 1,
+          y: 0,
+          duration: 0.28,
+          ease: 'power2.out'
+        });
+      }
+
+      // Action buttons stagger pop
+      if (actionsRef.current && actionsRef.current.children) {
+        gsap.fromTo(
+          actionsRef.current.children,
+          { scale: 0.75, opacity: 0, y: 8 },
+          { scale: 1, opacity: 1, y: 0, stagger: 0.04, duration: 0.28, ease: 'back.out(2)' }
+        );
+      }
+    }
+  };
+
+  const handleMouseLeave = () => {
+    if (window.matchMedia('(hover: hover)').matches && cardRef.current) {
+      gsap.killTweensOf([cardRef.current, overlayRef.current]);
+
+      gsap.to(cardRef.current, {
+        scale: 1,
+        y: 0,
+        duration: 0.3,
+        ease: 'power2.out',
+        overwrite: 'auto'
+      });
+
+      if (overlayRef.current) {
+        gsap.to(overlayRef.current, {
+          opacity: 0,
+          y: 6,
+          duration: 0.22,
+          ease: 'power2.in'
+        });
+      }
+    }
+  };
 
   // ── Play ──────────────────────────────────────────────────────────────────
   const handlePlay = useCallback((e) => {
@@ -65,13 +128,6 @@ export default function MediaCard({
     e.stopPropagation();
   };
 
-  // Formatted watch time
-  const formattedTimeLeft = () => {
-    if (!progress?.progress) return null;
-    const mins = Math.floor(progress.progress / 60);
-    return `${mins}m watched`;
-  };
-
   // Resolve best poster image (vertical 2:3 ratio)
   const rawImage = item.poster || item.backdrop;
   const fallbackImage = item.imdb_id
@@ -104,8 +160,11 @@ export default function MediaCard({
 
   return (
     <div
+      ref={cardRef}
       className="kmoviz-media-card"
       onClick={handleOpenDetail}
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
     >
       {/* Background Poster Image Layer */}
       <div className="card-media-layer">
@@ -139,13 +198,18 @@ export default function MediaCard({
         <h4 className="resting-name">{item.title}</h4>
       </div>
 
-      {/* Hover Interactive Drawer */}
-      <div className="card-info-overlay" onMouseDown={stopProp} onClick={stopProp}>
+      {/* Hover Interactive Drawer with GSAP Micro-Stagger */}
+      <div 
+        ref={overlayRef} 
+        className="card-info-overlay" 
+        onMouseDown={stopProp} 
+        onClick={stopProp}
+      >
         {/* Card Title */}
         <h4 className="card-title">{item.title}</h4>
 
         {/* Action Buttons Row */}
-        <div className="card-action-buttons" onMouseDown={stopProp}>
+        <div ref={actionsRef} className="card-action-buttons" onMouseDown={stopProp}>
           {/* ▶ Play Button (Solid White with Black Play Icon) */}
           <button
             id={`play-${itemId}`}

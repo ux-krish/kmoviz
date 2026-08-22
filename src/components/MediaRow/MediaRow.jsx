@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import { 
   ChevronLeft, ChevronRight, Flame, Tv, Palette, Globe, 
   Star, Zap, Rocket, Sparkles, Clock, Trophy, Film 
@@ -34,6 +34,7 @@ export default function MediaRow({
   onOpenDetail,
   onWatchlistChange
 }) {
+  const containerRef = useRef(null);
   const rowRef = useRef(null);
   const [isDraggingState, setIsDraggingState] = useState(false);
 
@@ -42,6 +43,33 @@ export default function MediaRow({
   const startXRef = useRef(0);
   const scrollLeftRef = useRef(0);
   const hasDraggedRef = useRef(false);
+
+  // High performance in-view cascading animation
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+
+    let hasAnimated = false;
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting && !hasAnimated) {
+          hasAnimated = true;
+          const cards = rowRef.current?.children || [];
+          if (cards.length > 0) {
+            gsap.fromTo(
+              Array.from(cards).slice(0, 8),
+              { opacity: 0, y: 22, scale: 0.95 },
+              { opacity: 1, y: 0, scale: 1, stagger: 0.04, duration: 0.45, ease: 'power2.out' }
+            );
+          }
+          observer.disconnect();
+        }
+      });
+    }, { threshold: 0.08 });
+
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
 
   if (!items || items.length === 0) return null;
 
@@ -103,7 +131,7 @@ export default function MediaRow({
   };
 
   return (
-    <div className="netflix-media-row">
+    <div ref={containerRef} className="netflix-media-row">
       <div className="row-header">
         <h3 className="row-title">
           {rowIcon}

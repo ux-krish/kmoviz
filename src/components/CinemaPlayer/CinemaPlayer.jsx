@@ -5,6 +5,7 @@ import {
 } from 'lucide-react';
 import { buildMovieEmbedUrl, buildTvEmbedUrl } from '../../services/vsembedApi';
 import { getPlaybackProgress, savePlaybackProgress } from '../../services/storageService';
+import gsap from 'gsap';
 import './CinemaPlayer.scss';
 
 export default function CinemaPlayer({
@@ -27,6 +28,8 @@ export default function CinemaPlayer({
   const [isControlsVisible, setIsControlsVisible] = useState(true);
 
   const playerContainerRef = useRef(null);
+  const topBarRef = useRef(null);
+  const viewportRef = useRef(null);
   const iframeRef = useRef(null);
   const hideControlsTimerRef = useRef(null);
   const countdownIntervalRef = useRef(null);
@@ -185,16 +188,53 @@ export default function CinemaPlayer({
       if (e.key === 'Escape') {
         if (showEpisodeDrawer) setShowEpisodeDrawer(false);
         else if (document.fullscreenElement) document.exitFullscreen?.();
-        else onClose();
+        else handleClosePlayer();
       }
       if (e.key === 'f' || e.key === 'F') {
         toggleFullscreen();
       }
     };
-
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [showEpisodeDrawer, onClose]);
+  }, [showEpisodeDrawer]);
+
+  // Cinematic GSAP Opening Animation
+  useEffect(() => {
+    const ctx = gsap.context(() => {
+      // 1. Zoom and expand video frame smoothly
+      if (viewportRef.current) {
+        gsap.fromTo(
+          viewportRef.current,
+          { scale: 0.88, opacity: 0, filter: 'blur(16px)' },
+          { scale: 1, opacity: 1, filter: 'blur(0px)', duration: 0.55, ease: 'power3.out' }
+        );
+      }
+      // 2. Cascade top control bar
+      if (topBarRef.current) {
+        gsap.fromTo(
+          topBarRef.current,
+          { y: -35, opacity: 0 },
+          { y: 0, opacity: 1, duration: 0.45, ease: 'power2.out', delay: 0.12 }
+        );
+      }
+    });
+
+    return () => ctx.revert();
+  }, []);
+
+  const handleClosePlayer = () => {
+    if (playerContainerRef.current) {
+      gsap.to(playerContainerRef.current, {
+        opacity: 0,
+        scale: 0.95,
+        duration: 0.25,
+        ease: 'power2.in',
+        onComplete: onClose
+      });
+    } else {
+      onClose();
+    }
+  };
 
   const currentSeasonData = item.seasons?.find(s => s.season_number === currentSeason);
 
@@ -205,9 +245,9 @@ export default function CinemaPlayer({
       onMouseMove={handleMouseMove}
     >
       {/* Top Floating Control Bar */}
-      <div className="player-top-bar">
+      <div ref={topBarRef} className="player-top-bar">
         <div className="bar-left">
-          <button className="back-btn" onClick={onClose} title="Back to KMOVIZ (Esc)">
+          <button className="back-btn" onClick={handleClosePlayer} title="Back to KMOVIZ (Esc)">
             <ArrowLeft size={22} />
           </button>
 
@@ -259,7 +299,7 @@ export default function CinemaPlayer({
       </div>
 
       {/* Embedded Iframe Viewport — Server 2 (vsembed.su) Direct 1-Click Stream */}
-      <div className="iframe-viewport">
+      <div ref={viewportRef} className="iframe-viewport">
         <iframe
           ref={iframeRef}
           key={playerKey}
