@@ -3,8 +3,12 @@
 
 .watchlist-view-container {
   min-height: 85vh;
-  padding: 105px 4% 80px;
+  padding: 115px 4% 80px;
   animation: fadeIn 0.3s ease-out;
+
+  @include mobile {
+    padding: 130px 1rem 60px;
+  }
 
   .section-block {
     margin-bottom: 4rem;

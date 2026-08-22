@@ -3,11 +3,11 @@
 
 .search-overlay-view {
   min-height: 80vh;
-  padding: 100px 4% 60px;
+  padding: 115px 4% 60px;
   animation: fadeIn 0.3s $ease-smooth;
 
   @include mobile {
-    padding: 85px 1rem 40px;
+    padding: 130px 1rem 40px;
   }
 
   .search-header-panel {
