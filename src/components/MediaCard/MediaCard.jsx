@@ -86,6 +86,22 @@ export default function MediaCard({
     return num.startsWith('PG') || num.startsWith('R') || num.startsWith('TV') ? num : `★ ${num}`;
   };
 
+  // Safe duration formatting (e.g. 135 -> "2h 15m", "2h 15m" -> "2h 15m")
+  const getDisplayDuration = () => {
+    if (!item.duration) return item.type === 'tv' ? 'Series' : '2h 15m';
+    const durStr = String(item.duration).trim();
+    if (!isNaN(durStr)) {
+      const mins = parseInt(durStr, 10);
+      if (mins > 60) {
+        const h = Math.floor(mins / 60);
+        const m = mins % 60;
+        return m > 0 ? `${h}h ${m}m` : `${h}h`;
+      }
+      return `${mins}m`;
+    }
+    return durStr;
+  };
+
   return (
     <div
       className="kmoviz-media-card"
@@ -125,8 +141,10 @@ export default function MediaCard({
 
       {/* Hover Interactive Drawer */}
       <div className="card-info-overlay" onMouseDown={stopProp} onClick={stopProp}>
+        {/* Card Title */}
         <h4 className="card-title">{item.title}</h4>
 
+        {/* Action Buttons Row */}
         <div className="card-action-buttons" onMouseDown={stopProp}>
           {/* ▶ Play Button (Solid White with Black Play Icon) */}
           <button
@@ -137,7 +155,7 @@ export default function MediaCard({
             onMouseDown={stopProp}
             onClick={handlePlay}
           >
-            <Play size={15} fill="currentColor" />
+            <Play size={14} fill="currentColor" />
           </button>
 
           {/* + / ✓ Watchlist Button (Green Tick when active) */}
@@ -149,7 +167,7 @@ export default function MediaCard({
             onMouseDown={stopProp}
             onClick={handleToggleWatchlist}
           >
-            {inList ? <Check size={16} strokeWidth={3} /> : <Plus size={16} strokeWidth={2.5} />}
+            {inList ? <Check size={15} strokeWidth={3} /> : <Plus size={15} strokeWidth={2.5} />}
           </button>
 
           {/* 👍 Like Button (Green Filled Thumbs-Up when active) */}
@@ -161,7 +179,7 @@ export default function MediaCard({
             onMouseDown={stopProp}
             onClick={handleToggleLike}
           >
-            <ThumbsUp size={14} fill={isLiked ? 'currentColor' : 'none'} />
+            <ThumbsUp size={13} fill={isLiked ? 'currentColor' : 'none'} />
           </button>
 
           {/* ⌄ Expand Details Button */}
@@ -173,7 +191,7 @@ export default function MediaCard({
             onMouseDown={stopProp}
             onClick={handleOpenDetail}
           >
-            <ChevronDown size={16} />
+            <ChevronDown size={15} />
           </button>
         </div>
 
@@ -181,14 +199,8 @@ export default function MediaCard({
         <div className="card-metadata-row">
           <span className="rating-tag">{getDisplayRating()}</span>
           <span className="year-tag">{item.year || '2026'}</span>
-          <span className="duration-tag">{item.duration || (item.type === 'tv' ? 'Series' : '2h 15m')}</span>
+          <span className="duration-tag">{getDisplayDuration()}</span>
         </div>
-
-        {progress && (
-          <div className="card-progress-time">
-            <span>{formattedTimeLeft()}</span>
-          </div>
-        )}
 
         {/* Genres Row */}
         <div className="card-genres-row">
