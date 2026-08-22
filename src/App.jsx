@@ -267,7 +267,7 @@ export default function App() {
 
               {(activeTab === 'home' || activeTab === 'movies') && nowPlaying.length > 0 && (
                 <MediaRow
-                  title="🔥 Brand New 2026–2025 Blockbusters & In Theaters"
+                  title="Brand New Blockbusters & In Theaters"
                   items={nowPlaying}
                   isLarge={true}
                   onPlay={handlePlayMedia}
@@ -308,7 +308,7 @@ export default function App() {
 
               {(activeTab === 'home' || activeTab === 'regional') && bollywoodMovies.length > 0 && (
                 <MediaRow
-                  title="🇮🇳 Bollywood & Regional Blockbusters"
+                  title="Bollywood & Regional Blockbusters"
                   items={bollywoodMovies}
                   onPlay={handlePlayMedia}
                   onOpenDetail={handleOpenDetail}
@@ -318,7 +318,7 @@ export default function App() {
 
               {topRatedMovies.length > 0 && (
                 <MediaRow
-                  title="⭐ All-Time Masterpieces & IMDb Top Rated"
+                  title="All-Time Masterpieces & IMDb Top Rated"
                   items={topRatedMovies}
                   onPlay={handlePlayMedia}
                   onOpenDetail={handleOpenDetail}
@@ -328,7 +328,7 @@ export default function App() {
 
               {actionMovies.length > 0 && (
                 <MediaRow
-                  title="⚡ Action & High-Octane Thrillers"
+                  title="Action & High-Octane Thrillers"
                   items={actionMovies}
                   onPlay={handlePlayMedia}
                   onOpenDetail={handleOpenDetail}
@@ -338,7 +338,7 @@ export default function App() {
 
               {scifiMovies.length > 0 && (
                 <MediaRow
-                  title="🚀 Sci-Fi & Cyberpunk Universes"
+                  title="Sci-Fi & Cyberpunk Universes"
                   items={scifiMovies}
                   onPlay={handlePlayMedia}
                   onOpenDetail={handleOpenDetail}
@@ -348,7 +348,7 @@ export default function App() {
 
               {trendingSeries.length > 0 && (
                 <MediaRow
-                  title="📺 Binge-Worthy TV Series & Originals"
+                  title="Binge-Worthy TV Series & Originals"
                   items={trendingSeries}
                   onPlay={handlePlayMedia}
                   onOpenDetail={handleOpenDetail}
@@ -358,7 +358,7 @@ export default function App() {
 
               {animationMovies.length > 0 && (
                 <MediaRow
-                  title="🎨 Popular Animation & Anime"
+                  title="Popular Animation & Anime"
                   items={animationMovies}
                   onPlay={handlePlayMedia}
                   onOpenDetail={handleOpenDetail}
@@ -368,7 +368,7 @@ export default function App() {
 
               {vsembedFeed.length > 0 && (
                 <MediaRow
-                  title="✨ Fresh Additions on VidSrc Network"
+                  title="Fresh Additions on VidSrc Network"
                   items={vsembedFeed}
                   onPlay={handlePlayMedia}
                   onOpenDetail={handleOpenDetail}

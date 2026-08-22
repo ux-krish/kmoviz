@@ -8,27 +8,51 @@
 
   .row-header {
     padding: 0 4%;
-    margin-bottom: 0.8rem;
+    margin-bottom: 0.75rem;
+
+    @include mobile {
+      padding: 0 1rem;
+      margin-bottom: 0.5rem;
+    }
 
     .row-title {
       display: inline-flex;
       align-items: center;
-      gap: 0.3rem;
-      font-size: clamp(1.1rem, 1.4vw, 1.4rem);
+      gap: 0.55rem;
+      font-size: clamp(1.05rem, 1.35vw, 1.35rem);
       font-weight: 700;
-      color: #e5e5e5;
+      color: #f0f0f0;
       cursor: pointer;
       transition: color 0.2s $ease-smooth;
+      white-space: nowrap;
+      flex-wrap: nowrap;
+
+      .row-svg-icon {
+        color: $netflix-red;
+        flex-shrink: 0;
+        filter: drop-shadow(0 0 6px rgba(229, 9, 20, 0.4));
+      }
+
+      .row-text {
+        white-space: nowrap;
+        line-height: 1.2;
+      }
 
       .title-chevron {
         opacity: 0;
         transform: translateX(-4px);
         transition: all 0.2s $ease-smooth;
         color: #54b9c5;
+        flex-shrink: 0;
       }
 
       &:hover {
         color: #ffffff;
+
+        .row-svg-icon {
+          color: $netflix-red-hover;
+          transform: scale(1.1);
+        }
 
         .title-chevron {
           opacity: 1;

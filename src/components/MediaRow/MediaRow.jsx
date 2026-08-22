@@ -1,12 +1,32 @@
 import React, { useRef, useState } from 'react';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { 
+  ChevronLeft, ChevronRight, Flame, Tv, Palette, Globe, 
+  Star, Zap, Rocket, Sparkles, Clock, Trophy, Film 
+} from 'lucide-react';
 import MediaCard from '../MediaCard/MediaCard';
 import Top10Card from '../Top10Card/Top10Card';
 import gsap from 'gsap';
 import './MediaRow.scss';
 
+// Resolves proper matching Lucide SVG icon for each category row
+function getRowIcon(title = '') {
+  const t = title.toLowerCase();
+  if (t.includes('continue') || t.includes('history')) return <Clock size={19} className="row-svg-icon" />;
+  if (t.includes('top 10')) return <Trophy size={19} className="row-svg-icon" />;
+  if (t.includes('brand new') || t.includes('trending') || t.includes('blockbuster')) return <Flame size={19} className="row-svg-icon" />;
+  if (t.includes('tv series') || t.includes('binge') || t.includes('shows')) return <Tv size={19} className="row-svg-icon" />;
+  if (t.includes('animation') || t.includes('anime')) return <Palette size={19} className="row-svg-icon" />;
+  if (t.includes('bollywood') || t.includes('regional')) return <Globe size={19} className="row-svg-icon" />;
+  if (t.includes('masterpiece') || t.includes('top rated')) return <Star size={19} className="row-svg-icon" />;
+  if (t.includes('action') || t.includes('thriller')) return <Zap size={19} className="row-svg-icon" />;
+  if (t.includes('sci-fi') || t.includes('cyberpunk')) return <Rocket size={19} className="row-svg-icon" />;
+  if (t.includes('fresh') || t.includes('network')) return <Sparkles size={19} className="row-svg-icon" />;
+  return <Film size={19} className="row-svg-icon" />;
+}
+
 export default function MediaRow({
-  title,
+  title = '',
+  icon,
   items = [],
   isTop10 = false,
   isLarge = false,
@@ -25,6 +45,10 @@ export default function MediaRow({
 
   if (!items || items.length === 0) return null;
 
+  // Clean any emojis from the title string and render pure inline text
+  const cleanTitle = title.replace(/[\u{1F300}-\u{1F9FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}\u{1F1E6}-\u{1F1FF}]/gu, '').trim();
+  const rowIcon = icon || getRowIcon(title);
+
   // Arrow button smooth scrolling
   const handleScroll = (direction) => {
     if (!rowRef.current) return;
@@ -41,7 +65,6 @@ export default function MediaRow({
 
   // Mouse Drag to Scroll Handlers
   const handleMouseDown = (e) => {
-    // If clicking a button or interactive element, don't initiate drag
     if (e.target.closest('button') || e.target.closest('.card-action-buttons') || e.target.closest('.card-btn')) {
       return;
     }
@@ -57,29 +80,21 @@ export default function MediaRow({
     const x = e.pageX - rowRef.current.offsetLeft;
     const walk = (x - startXRef.current) * 1.5;
 
-    // Only consider dragging if moved more than 8 pixels
-    if (Math.abs(walk) > 8) {
-      if (!hasDraggedRef.current) {
-        hasDraggedRef.current = true;
-        setIsDraggingState(true);
-      }
-      e.preventDefault();
+    if (Math.abs(x - startXRef.current) > 8) {
+      if (!isDraggingState) setIsDraggingState(true);
+      hasDraggedRef.current = true;
       rowRef.current.scrollLeft = scrollLeftRef.current - walk;
     }
   };
 
   const handleMouseUpOrLeave = () => {
     isDownRef.current = false;
-    if (isDraggingState) {
-      setIsDraggingState(false);
-    }
-    // Small timeout to clear hasDragged so click handlers don't fire during drag release
     setTimeout(() => {
+      setIsDraggingState(false);
       hasDraggedRef.current = false;
     }, 50);
   };
 
-  // Prevent opening details if the user was genuinely dragging the slide
   const handleCardClickCapture = (e) => {
     if (hasDraggedRef.current) {
       e.stopPropagation();
@@ -91,7 +106,8 @@ export default function MediaRow({
     <div className="netflix-media-row">
       <div className="row-header">
         <h3 className="row-title">
-          <span>{title}</span>
+          {rowIcon}
+          <span className="row-text">{cleanTitle}</span>
           <ChevronRight size={18} className="title-chevron" />
         </h3>
       </div>
