@@ -5,8 +5,6 @@ import {
 } from 'lucide-react';
 import { buildMovieEmbedUrl, buildTvEmbedUrl } from '../../services/vsembedApi';
 import { getPlaybackProgress, savePlaybackProgress } from '../../services/storageService';
-import { subscribeAdShieldStats, incrementBlockedCount } from '../../services/adShieldService';
-import ClickShield from './ClickShield';
 import './CinemaPlayer.scss';
 
 // Only servers that work without sandbox restrictions
@@ -274,30 +272,19 @@ export default function CinemaPlayer({
         </div>
       </div>
 
-      {/* Embedded Iframe Viewport with ClickShield + Sandbox */}
+      {/* Embedded Iframe Viewport — Direct 1-Click Playback */}
       <div className="iframe-viewport">
-        {/* Top/Bottom Watermark Mask — covers burned-in promo overlays */}
-        {cleanShieldActive && <div className="watermark-shield-mask-top" />}
-        {cleanShieldActive && <div className="watermark-shield-mask-bottom" />}
-
-        {/* ClickShield — uBlock-style transparent click interceptor */}
-        <ClickShield
-          isActive={cleanShieldActive}
-          onPopupBlocked={(domain) => {
-            console.log('[Player] Popup blocked by ClickShield:', domain);
-          }}
-        >
-          <iframe
-            ref={iframeRef}
-            key={playerKey}
-            src={embedUrl}
-            title={item.title}
-            allowFullScreen
-            allow="autoplay; encrypted-media; fullscreen; picture-in-picture"
-            className="vsembed-iframe"
-            referrerPolicy="no-referrer"
-          />
-        </ClickShield>
+        <iframe
+          ref={iframeRef}
+          key={playerKey}
+          src={embedUrl}
+          title={item.title}
+          allowFullScreen
+          allow="autoplay *; encrypted-media *; fullscreen *; picture-in-picture *"
+          className="vsembed-iframe"
+          referrerPolicy="no-referrer"
+          loading="eager"
+        />
       </div>
 
       {/* Resume playback prompt banner */}
