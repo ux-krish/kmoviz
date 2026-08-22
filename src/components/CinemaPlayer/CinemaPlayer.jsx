@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { 
   ArrowLeft, Maximize2, Minimize2, List, RotateCcw, 
-  Play, Sparkles 
+  Play, Sparkles, Server, Check
 } from 'lucide-react';
 import { buildMovieEmbedUrl, buildTvEmbedUrl } from '../../services/vsembedApi';
 import { getPlaybackProgress, savePlaybackProgress } from '../../services/storageService';
@@ -14,6 +14,8 @@ export default function CinemaPlayer({
   onClose,
   onUpdateHistory
 }) {
+  // Toggle between Server 2 (vsembed.su) and Server 3 (vidsrc.me)
+  const [activeServer, setActiveServer] = useState('server2'); // 'server2' | 'server3'
   const [currentSeason, setCurrentSeason] = useState(initialSeason);
   const [currentEpisode, setCurrentEpisode] = useState(initialEpisode);
   const [showEpisodeDrawer, setShowEpisodeDrawer] = useState(false);
@@ -45,21 +47,33 @@ export default function CinemaPlayer({
     }
   }, [rawId]);
 
-  // Automatic Background Server Selection (Picks optimal 4K high-speed stream)
+  // Generate Embed URL choosing exclusively between Server 2 and Server 3
   const getEmbedUrl = () => {
-    const id = tmdbId || imdbId || rawId;
-
-    if (isTv) {
-      return `https://vidsrc.cc/v2/embed/tv/${id}/${currentSeason}/${currentEpisode}?autoPlay=true`;
+    // ── Server 2: VidSrc Pro (vsembed.su) ──
+    if (activeServer === 'server2') {
+      const id = imdbId || tmdbId || rawId;
+      return isTv
+        ? buildTvEmbedUrl(id, currentSeason, currentEpisode, {
+            autoplay: 1,
+            autonext: autoNext ? 1 : 0,
+            startAt: activeStartAt
+          })
+        : buildMovieEmbedUrl(id, {
+            autoplay: 1,
+            startAt: activeStartAt
+          });
     }
 
-    // Default fast 4K movie stream
-    return `https://vidsrc.cc/v2/embed/movie/${id}?autoPlay=true`;
+    // ── Server 3: VidSrc Classic (vidsrc.me) ──
+    const query = imdbId ? `imdb=${imdbId}` : `tmdb=${tmdbId || rawId}`;
+    return isTv
+      ? `https://vidsrc.me/embed/tv?${query}&season=${currentSeason}&episode=${currentEpisode}&autoPlay=true`
+      : `https://vidsrc.me/embed/movie?${query}&autoPlay=true`;
   };
 
   const embedUrl = getEmbedUrl();
 
-  // Listen to postMessage player events
+  // Listen to postMessage player events from Server 2
   useEffect(() => {
     const handlePlayerMessage = (event) => {
       if (!event.data || event.data.type !== 'PLAYER_EVENT') return;
@@ -147,6 +161,11 @@ export default function CinemaPlayer({
     setPlayerKey(Date.now());
   };
 
+  const handleSwitchServer = (serverKey) => {
+    setActiveServer(serverKey);
+    setPlayerKey(Date.now());
+  };
+
   const toggleFullscreen = () => {
     if (!document.fullscreenElement) {
       playerContainerRef.current?.requestFullscreen?.();
@@ -207,6 +226,28 @@ export default function CinemaPlayer({
         </div>
 
         <div className="bar-right">
+          {/* Server 2 / Server 3 Switcher Pills */}
+          <div className="server-toggle-group">
+            <button
+              type="button"
+              className={`server-pill ${activeServer === 'server2' ? 'active' : ''}`}
+              onClick={() => handleSwitchServer('server2')}
+              title="Switch to Server 2 (VidSrc Pro - 4K)"
+            >
+              <Server size={13} />
+              <span>Server 2</span>
+            </button>
+            <button
+              type="button"
+              className={`server-pill ${activeServer === 'server3' ? 'active' : ''}`}
+              onClick={() => handleSwitchServer('server3')}
+              title="Switch to Server 3 (VidSrc Classic)"
+            >
+              <Server size={13} />
+              <span>Server 3</span>
+            </button>
+          </div>
+
           {isTv && (
             <button
               type="button"
@@ -225,7 +266,7 @@ export default function CinemaPlayer({
         </div>
       </div>
 
-      {/* Embedded Iframe Viewport — Direct Automatic 1-Click Stream */}
+      {/* Embedded Iframe Viewport — Server 2 & 3 Direct Stream */}
       <div className="iframe-viewport">
         <iframe
           ref={iframeRef}
