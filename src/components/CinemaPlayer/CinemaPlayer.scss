@@ -100,48 +100,39 @@
       align-items: center;
       gap: 0.75rem;
 
-      .server-quick-selector {
+      .quick-servers-row {
         display: flex;
         align-items: center;
-        gap: 0.4rem;
-        background: rgba(20, 20, 20, 0.8);
-        border: 1px solid rgba(255, 255, 255, 0.2);
-        padding: 0.35rem 0.7rem;
-        border-radius: 4px;
-        backdrop-filter: blur(8px);
-
-        .server-icon {
-          color: #46d369;
-        }
-
-        select {
-          background: transparent;
-          border: none;
-          color: #ffffff;
-          font-size: 0.82rem;
-          font-weight: 600;
-          outline: none;
-          cursor: pointer;
-
-          option {
-            background-color: #1a1a1a;
-            color: #ffffff;
-          }
-        }
+        gap: 0.35rem;
 
         @include mobile {
           display: none;
         }
-      }
 
-      .shield-btn {
-        &.active {
-          background: rgba(70, 211, 105, 0.2);
-          border-color: #46d369;
-          color: #46d369;
+        .quick-srv-pill {
+          display: inline-flex;
+          align-items: center;
+          gap: 0.3rem;
+          padding: 0.35rem 0.65rem;
+          border-radius: 6px;
+          background: rgba(255, 255, 255, 0.08);
+          border: 1px solid rgba(255, 255, 255, 0.15);
+          color: rgba(255, 255, 255, 0.7);
+          font-size: 0.76rem;
+          font-weight: 600;
+          cursor: pointer;
+          transition: all 0.2s ease;
 
-          .shield-icon {
-            color: #46d369;
+          &:hover {
+            background: rgba(255, 255, 255, 0.18);
+            color: #ffffff;
+          }
+
+          &.active {
+            background: $netflix-red;
+            border-color: $netflix-red;
+            color: #ffffff;
+            box-shadow: 0 0 10px rgba(229, 9, 20, 0.5);
           }
         }
       }

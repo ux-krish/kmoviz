@@ -1,16 +1,19 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { 
   ArrowLeft, Maximize2, Minimize2, List, Settings, RotateCcw, 
-  Play, Check, Sparkles, Server, Zap, Globe, Shield, ShieldCheck, Eye, EyeOff
+  Play, Check, Sparkles, Server, Zap, Globe, RefreshCw
 } from 'lucide-react';
 import { buildMovieEmbedUrl, buildTvEmbedUrl } from '../../services/vsembedApi';
 import { getPlaybackProgress, savePlaybackProgress } from '../../services/storageService';
 import './CinemaPlayer.scss';
 
-// Only servers that work without sandbox restrictions
+// Top High-Speed Streaming Server Engines
 const SERVERS = [
-  { id: 'vsembed',   name: 'Server 1 — VidSrc Pro (Fast · 4K)', badge: 'Recommended' },
-  { id: 'vidsrc_me', name: 'Server 2 — VidSrc Classic (Clean)', badge: 'Stable' },
+  { id: 'vidsrc_cc', name: 'Server 1 — VidSrc VIP (Fast · 4K UHD)', badge: 'Recommended' },
+  { id: 'vsembed',   name: 'Server 2 — VidSrc Pro (High Speed)', badge: 'Fast' },
+  { id: 'vidsrc_me', name: 'Server 3 — VidSrc Classic (Stable)', badge: 'Clean' },
+  { id: 'autoembed', name: 'Server 4 — AutoEmbed Pro', badge: 'Ultra HD' },
+  { id: 'multiembed', name: 'Server 5 — MultiEmbed Mirror', badge: 'Backup' },
 ];
 
 export default function CinemaPlayer({
@@ -20,7 +23,7 @@ export default function CinemaPlayer({
   onClose,
   onUpdateHistory
 }) {
-  const [selectedServer, setSelectedServer] = useState('vsembed');
+  const [selectedServer, setSelectedServer] = useState('vidsrc_cc');
   const [currentSeason, setCurrentSeason] = useState(initialSeason);
   const [currentEpisode, setCurrentEpisode] = useState(initialEpisode);
   const [showEpisodeDrawer, setShowEpisodeDrawer] = useState(false);
@@ -33,54 +36,75 @@ export default function CinemaPlayer({
   const [playerKey, setPlayerKey] = useState(Date.now());
   const [activeStartAt, setActiveStartAt] = useState(0);
   const [isControlsVisible, setIsControlsVisible] = useState(true);
-  const [cleanShieldActive, setCleanShieldActive] = useState(true); // Masks top watermarks & block ads
 
   const playerContainerRef = useRef(null);
   const iframeRef = useRef(null);
   const hideControlsTimerRef = useRef(null);
   const countdownIntervalRef = useRef(null);
 
-  // Subscribe to AdShield stats for live blocked counter in player
-  const [adBlockedCount, setAdBlockedCount] = useState(0);
-  useEffect(() => {
-    const unsub = subscribeAdShieldStats((data) => setAdBlockedCount(data.total));
-    return unsub;
-  }, []);
-
-
-  const mediaId = item.imdb_id || item.tmdb_id || item.id;
+  // Extract ID representations
+  const rawId = item.id || item.imdb_id || item.tmdb_id;
+  const isImdb = typeof rawId === 'string' && rawId.startsWith('tt');
+  const imdbId = item.imdb_id || (isImdb ? rawId : null);
+  const tmdbId = item.tmdb_id || (!isImdb ? rawId : null);
   const isTv = item.type === 'tv' || Boolean(item.seasons);
-  const isImdb = typeof mediaId === 'string' && mediaId.startsWith('tt');
 
   // Check saved progress on mount
   useEffect(() => {
-    const saved = getPlaybackProgress(mediaId);
+    const saved = getPlaybackProgress(rawId);
     if (saved && saved.progress > 30 && saved.duration && saved.progress < saved.duration - 60) {
       setResumePrompt(saved);
     }
-  }, [mediaId]);
+  }, [rawId]);
 
-  // Generate embed URL — Server 1: VidSrc Pro (vsembed), Server 2: VidSrc Classic (vidsrc.me)
+  // Generate embed URL according to selected server
   const getEmbedUrl = () => {
-    if (selectedServer === 'vidsrc_me') {
+    // 1. VidSrc VIP (vidsrc.cc)
+    if (selectedServer === 'vidsrc_cc') {
+      const id = tmdbId || imdbId || rawId;
       return isTv
-        ? `https://vidsrc.me/embed/tv?${isImdb ? `imdb=${mediaId}` : `tmdb=${mediaId}`}&season=${currentSeason}&episode=${currentEpisode}`
-        : `https://vidsrc.me/embed/movie?${isImdb ? `imdb=${mediaId}` : `tmdb=${mediaId}`}`;
+        ? `https://vidsrc.cc/v2/embed/tv/${id}/${currentSeason}/${currentEpisode}?autoPlay=true`
+        : `https://vidsrc.cc/v2/embed/movie/${id}?autoPlay=true`;
     }
 
-    // Default: vsembed (Server 1 — VidSrc Pro)
+    // 2. VidSrc Pro (vsembed.su)
+    if (selectedServer === 'vsembed') {
+      const id = imdbId || tmdbId || rawId;
+      return isTv
+        ? buildTvEmbedUrl(id, currentSeason, currentEpisode, {
+            autoplay: 1,
+            autonext: autoNext ? 1 : 0,
+            startAt: activeStartAt,
+            ds_lang: defaultLang
+          })
+        : buildMovieEmbedUrl(id, {
+            autoplay: 1,
+            startAt: activeStartAt,
+            ds_lang: defaultLang
+          });
+    }
+
+    // 3. VidSrc Classic (vidsrc.me)
+    if (selectedServer === 'vidsrc_me') {
+      const query = imdbId ? `imdb=${imdbId}` : `tmdb=${tmdbId || rawId}`;
+      return isTv
+        ? `https://vidsrc.me/embed/tv?${query}&season=${currentSeason}&episode=${currentEpisode}&autoPlay=true`
+        : `https://vidsrc.me/embed/movie?${query}&autoPlay=true`;
+    }
+
+    // 4. AutoEmbed (player.autoembed.cc)
+    if (selectedServer === 'autoembed') {
+      const id = tmdbId || imdbId || rawId;
+      return isTv
+        ? `https://player.autoembed.cc/embed/tv/${id}/${currentSeason}/${currentEpisode}`
+        : `https://player.autoembed.cc/embed/movie/${id}`;
+    }
+
+    // 5. MultiEmbed (multiembed.mov)
+    const id = imdbId || tmdbId || rawId;
     return isTv
-      ? buildTvEmbedUrl(mediaId, currentSeason, currentEpisode, {
-          autoplay: 1,
-          autonext: autoNext ? 1 : 0,
-          startAt: activeStartAt,
-          ds_lang: defaultLang
-        })
-      : buildMovieEmbedUrl(mediaId, {
-          autoplay: 1,
-          startAt: activeStartAt,
-          ds_lang: defaultLang
-        });
+      ? `https://multiembed.mov/?video_id=${id}&s=${currentSeason}&e=${currentEpisode}`
+      : `https://multiembed.mov/?video_id=${id}`;
   };
 
   const embedUrl = getEmbedUrl();
@@ -93,7 +117,7 @@ export default function CinemaPlayer({
       const { player_info, player_status, player_progress, player_duration } = event.data.data || {};
 
       if (player_progress !== undefined && player_duration !== undefined) {
-        savePlaybackProgress(mediaId, player_progress, player_duration, {
+        savePlaybackProgress(rawId, player_progress, player_duration, {
           title: item.title,
           type: item.type || 'movie',
           season: isTv ? currentSeason : undefined,
@@ -104,7 +128,6 @@ export default function CinemaPlayer({
         if (onUpdateHistory) onUpdateHistory();
       }
 
-      // Handle completed status for auto-next episode
       if (player_status === 'completed' && isTv && autoNext) {
         handleTriggerNextEpisode();
       }
@@ -112,7 +135,7 @@ export default function CinemaPlayer({
 
     window.addEventListener('message', handlePlayerMessage);
     return () => window.removeEventListener('message', handlePlayerMessage);
-  }, [mediaId, currentSeason, currentEpisode, isTv, autoNext, item]);
+  }, [rawId, currentSeason, currentEpisode, isTv, autoNext, item, onUpdateHistory]);
 
   // Hide UI controls after idle
   const handleMouseMove = () => {
@@ -148,126 +171,140 @@ export default function CinemaPlayer({
   };
 
   const playNextEpisode = () => {
+    if (countdownIntervalRef.current) clearInterval(countdownIntervalRef.current);
     setNextEpCountdown(null);
-    setCurrentEpisode((prev) => prev + 1);
-    setActiveStartAt(0);
+    setCurrentEpisode(prev => prev + 1);
+    setPlayerKey(Date.now());
+  };
+
+  const cancelNextEpisode = () => {
+    if (countdownIntervalRef.current) clearInterval(countdownIntervalRef.current);
+    setNextEpCountdown(null);
+  };
+
+  const handleResumeClick = (resume) => {
+    if (resume && resumePrompt) {
+      setActiveStartAt(resumePrompt.progress);
+    }
+    setResumePrompt(null);
+    setPlayerKey(Date.now());
+  };
+
+  const handleSwitchServer = (serverId) => {
+    setSelectedServer(serverId);
     setPlayerKey(Date.now());
   };
 
   const handleSelectEpisode = (seasonNum, epNum) => {
     setCurrentSeason(seasonNum);
     setCurrentEpisode(epNum);
-    setActiveStartAt(0);
-    setPlayerKey(Date.now());
     setShowEpisodeDrawer(false);
-  };
-
-  const handleResumeClick = (useSavedTime) => {
-    if (useSavedTime && resumePrompt) {
-      setActiveStartAt(resumePrompt.progress);
-    } else {
-      setActiveStartAt(0);
-    }
-    setResumePrompt(null);
     setPlayerKey(Date.now());
   };
 
   const toggleFullscreen = () => {
     if (!document.fullscreenElement) {
-      playerContainerRef.current?.requestFullscreen().catch(() => {});
+      playerContainerRef.current?.requestFullscreen?.();
       setIsFullscreen(true);
     } else {
-      document.exitFullscreen().catch(() => {});
+      document.exitFullscreen?.();
       setIsFullscreen(false);
     }
   };
 
-  const formatSeconds = (sec) => {
-    const mins = Math.floor(sec / 60);
-    const s = Math.floor(sec % 60);
-    return `${mins}:${s < 10 ? '0' : ''}${s}`;
-  };
+  // Keyboard Shortcuts (Esc to close, F for fullscreen, S for settings)
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') {
+        if (showEpisodeDrawer) setShowEpisodeDrawer(false);
+        else if (showSettings) setShowSettings(false);
+        else if (document.fullscreenElement) document.exitFullscreen?.();
+        else onClose();
+      }
+      if (e.key === 'f' || e.key === 'F') {
+        toggleFullscreen();
+      }
+      if (e.key === 's' || e.key === 'S') {
+        setShowSettings(prev => !prev);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [showEpisodeDrawer, showSettings, onClose]);
 
   const currentSeasonData = item.seasons?.find(s => s.season_number === currentSeason);
-  const currentEpisodeData = currentSeasonData?.episodes?.find(e => e.episode_number === currentEpisode);
 
   return (
     <div
       ref={playerContainerRef}
-      className={`cinema-player-overlay ${isControlsVisible ? 'controls-active' : 'controls-hidden'} ${cleanShieldActive ? 'shield-on' : ''}`}
+      className={`cinema-player-overlay ${isControlsVisible ? 'controls-active' : 'controls-hidden'}`}
       onMouseMove={handleMouseMove}
     >
       {/* Top Floating Control Bar */}
       <div className="player-top-bar">
         <div className="bar-left">
-          <button className="back-btn" onClick={onClose} title="Back to KMOVIZ">
-            <ArrowLeft size={24} />
+          <button className="back-btn" onClick={onClose} title="Back to KMOVIZ (Esc)">
+            <ArrowLeft size={22} />
           </button>
 
           <div className="player-title-info">
-            <div className="brand-pill">
-              <Zap size={13} /> KMOVIZ Cinema
-            </div>
-            <h2 className="title-text">{item.title}</h2>
+            <span className="brand-pill">
+              <Sparkles size={12} />
+              <span>4K CINEMA</span>
+            </span>
+            <h3 className="title-text">{item.title}</h3>
             {isTv && (
               <span className="episode-meta">
-                S{currentSeason}:E{currentEpisode} {currentEpisodeData?.title ? `— "${currentEpisodeData.title}"` : ''}
+                Season {currentSeason}, Episode {currentEpisode}
+                {currentSeasonData?.episodes?.find(e => e.episode_number === currentEpisode)?.name
+                  ? ` — "${currentSeasonData.episodes.find(e => e.episode_number === currentEpisode).name}"`
+                  : ''}
               </span>
             )}
           </div>
         </div>
 
         <div className="bar-right">
-          {/* Ad & Watermark Shield Button */}
-          <button
-            className={`player-tool-btn shield-btn ${cleanShieldActive ? 'active' : ''}`}
-            onClick={() => setCleanShieldActive(!cleanShieldActive)}
-            title={cleanShieldActive ? 'Ad & Watermark Shield Active — Click to Disable' : 'Enable Ad & Watermark Shield'}
-          >
-            <ShieldCheck size={18} className="shield-icon" />
-            <span>{cleanShieldActive ? `Shield ON · ${adBlockedCount} blocked` : 'Shield OFF'}</span>
-          </button>
-
-          {/* Server Switcher Quick Selector */}
-          <div className="server-quick-selector">
-            <Server size={16} className="server-icon" />
-            <select
-              value={selectedServer}
-              onChange={(e) => {
-                setSelectedServer(e.target.value);
-                setPlayerKey(Date.now());
-              }}
-              title="Switch Streaming Server (Clean / Ad-Free / 4K)"
-            >
-              {SERVERS.map(s => (
-                <option key={s.id} value={s.id}>
-                  {s.name}
-                </option>
-              ))}
-            </select>
+          {/* Quick Server Switcher Pills */}
+          <div className="quick-servers-row">
+            {SERVERS.slice(0, 3).map((srv, idx) => (
+              <button
+                key={srv.id}
+                type="button"
+                className={`quick-srv-pill ${selectedServer === srv.id ? 'active' : ''}`}
+                onClick={() => handleSwitchServer(srv.id)}
+                title={`Switch to ${srv.name}`}
+              >
+                <Server size={12} />
+                <span>Server {idx + 1}</span>
+              </button>
+            ))}
           </div>
 
           {isTv && (
             <button
+              type="button"
               className={`player-tool-btn ${showEpisodeDrawer ? 'active' : ''}`}
               onClick={() => setShowEpisodeDrawer(!showEpisodeDrawer)}
               title="Episodes Selector"
             >
-              <List size={20} />
+              <List size={18} />
               <span>Episodes</span>
             </button>
           )}
 
           <button
+            type="button"
             className={`player-tool-btn ${showSettings ? 'active' : ''}`}
             onClick={() => setShowSettings(!showSettings)}
-            title="Audio, Subtitles & Servers"
+            title="All Servers & Audio Settings"
           >
-            <Settings size={20} />
+            <Settings size={18} />
           </button>
 
-          <button className="player-tool-btn" onClick={toggleFullscreen} title="Fullscreen">
-            {isFullscreen ? <Minimize2 size={20} /> : <Maximize2 size={20} />}
+          <button type="button" className="player-tool-btn" onClick={toggleFullscreen} title="Fullscreen (F)">
+            {isFullscreen ? <Minimize2 size={18} /> : <Maximize2 size={18} />}
           </button>
         </div>
       </div>
@@ -299,10 +336,10 @@ export default function CinemaPlayer({
               <p>You left off at {formatSeconds(resumePrompt.progress)}.</p>
             </div>
             <div className="resume-buttons">
-              <button className="btn-resume" onClick={() => handleResumeClick(true)}>
+              <button type="button" className="btn-resume" onClick={() => handleResumeClick(true)}>
                 Resume ({formatSeconds(resumePrompt.progress)})
               </button>
-              <button className="btn-restart" onClick={() => handleResumeClick(false)}>
+              <button type="button" className="btn-restart" onClick={() => handleResumeClick(false)}>
                 Start from Beginning
               </button>
             </div>
@@ -322,11 +359,11 @@ export default function CinemaPlayer({
               Season {currentSeason}, Episode {currentEpisode + 1}
             </h3>
             <div className="next-ep-actions">
-              <button className="btn-play-now" onClick={playNextEpisode}>
+              <button type="button" className="btn-play-now" onClick={playNextEpisode}>
                 <Play size={18} fill="currentColor" />
                 <span>Play Now</span>
               </button>
-              <button className="btn-cancel" onClick={() => setNextEpCountdown(null)}>
+              <button type="button" className="btn-cancel" onClick={cancelNextEpisode}>
                 Cancel
               </button>
             </div>
@@ -334,149 +371,144 @@ export default function CinemaPlayer({
         </div>
       )}
 
-      {/* Episode Selector Drawer */}
-      {showEpisodeDrawer && isTv && (
-        <div className="episodes-drawer">
+      {/* Episode Drawer Sidebar */}
+      {isTv && showEpisodeDrawer && (
+        <div className="episode-drawer-panel">
           <div className="drawer-header">
             <h3>Episodes</h3>
-            <select
-              className="season-select"
-              value={currentSeason}
-              onChange={(e) => setCurrentSeason(Number(e.target.value))}
-            >
-              {item.seasons ? (
-                item.seasons.map((s) => (
-                  <option key={s.season_number} value={s.season_number}>
-                    Season {s.season_number}
-                  </option>
-                ))
-              ) : (
-                <option value="1">Season 1</option>
-              )}
-            </select>
+            <button type="button" className="drawer-close" onClick={() => setShowEpisodeDrawer(false)}>
+              &times;
+            </button>
           </div>
 
+          {item.seasons && item.seasons.length > 1 && (
+            <div className="season-selector-tabs">
+              {item.seasons.map(s => (
+                <button
+                  key={s.season_number}
+                  type="button"
+                  className={`season-tab ${currentSeason === s.season_number ? 'active' : ''}`}
+                  onClick={() => setCurrentSeason(s.season_number)}
+                >
+                  Season {s.season_number}
+                </button>
+              ))}
+            </div>
+          )}
+
           <div className="episodes-list">
-            {currentSeasonData?.episodes ? (
-              currentSeasonData.episodes.map((ep) => (
-                <div
-                  key={ep.episode_number}
-                  className={`episode-item ${ep.episode_number === currentEpisode ? 'active' : ''}`}
-                  onClick={() => handleSelectEpisode(currentSeason, ep.episode_number)}
-                >
-                  <div className="ep-thumb" style={{ backgroundImage: `url(${ep.thumbnail || item.backdrop})` }}>
-                    <span className="ep-num">{ep.episode_number}</span>
-                  </div>
-                  <div className="ep-info">
-                    <div className="ep-title-row">
-                      <span className="ep-title">{ep.title}</span>
-                      <span className="ep-dur">{ep.duration}</span>
+            {currentSeasonData?.episodes && currentSeasonData.episodes.length > 0 ? (
+              currentSeasonData.episodes.map(ep => {
+                const isCurrent = ep.episode_number === currentEpisode;
+                return (
+                  <div
+                    key={ep.episode_number}
+                    className={`episode-item-card ${isCurrent ? 'active' : ''}`}
+                    onClick={() => handleSelectEpisode(currentSeason, ep.episode_number)}
+                  >
+                    <div className="ep-thumb-wrapper">
+                      <img
+                        src={ep.thumbnail || `https://images.metahub.space/background/medium/tt0944947/img`}
+                        alt={ep.name}
+                        loading="lazy"
+                      />
+                      <div className="ep-play-hover">
+                        <Play size={16} fill="#ffffff" />
+                      </div>
                     </div>
-                    <p className="ep-desc">{ep.overview}</p>
+                    <div className="ep-info">
+                      <div className="ep-title-row">
+                        <span className="ep-number">{ep.episode_number}.</span>
+                        <span className="ep-title">{ep.name || `Episode ${ep.episode_number}`}</span>
+                      </div>
+                      {ep.overview && <p className="ep-overview">{ep.overview}</p>}
+                    </div>
                   </div>
-                </div>
-              ))
+                );
+              })
             ) : (
-              Array.from({ length: 12 }).map((_, i) => (
-                <div
-                  key={i + 1}
-                  className={`episode-item ${i + 1 === currentEpisode ? 'active' : ''}`}
-                  onClick={() => handleSelectEpisode(currentSeason, i + 1)}
-                >
-                  <div className="ep-thumb" style={{ backgroundImage: `url(${item.backdrop})` }}>
-                    <span className="ep-num">{i + 1}</span>
-                  </div>
-                  <div className="ep-info">
-                    <div className="ep-title-row">
-                      <span className="ep-title">Episode {i + 1}</span>
-                      <span className="ep-dur">45m</span>
+              // Fallback generate 10 generic episodes if specific metadata not loaded
+              Array.from({ length: 12 }).map((_, idx) => {
+                const epNum = idx + 1;
+                const isCurrent = epNum === currentEpisode;
+                return (
+                  <div
+                    key={epNum}
+                    className={`episode-item-card ${isCurrent ? 'active' : ''}`}
+                    onClick={() => handleSelectEpisode(currentSeason, epNum)}
+                  >
+                    <div className="ep-number-circle">{epNum}</div>
+                    <div className="ep-info">
+                      <span className="ep-title">Episode {epNum}</span>
+                      <span className="ep-duration">45m</span>
                     </div>
-                    <p className="ep-desc">Stream Episode {i + 1} on KMOVIZ Cinema Engine.</p>
                   </div>
-                </div>
-              ))
+                );
+              })
             )}
           </div>
         </div>
       )}
 
-      {/* Settings / Subtitles Modal */}
+      {/* Settings / Server Switcher Modal */}
       {showSettings && (
-        <div className="player-settings-modal">
-          <div className="settings-header">
-            <h4>Playback & Server Settings</h4>
-            <button className="close-settings" onClick={() => setShowSettings(false)}>
-              ✕
-            </button>
-          </div>
-
-          <div className="settings-body">
-            <div className="setting-row">
-              <label>Switch Streaming Server</label>
-              <select
-                value={selectedServer}
-                onChange={(e) => {
-                  setSelectedServer(e.target.value);
-                  setPlayerKey(Date.now());
-                }}
-              >
-                {SERVERS.map(s => (
-                  <option key={s.id} value={s.id}>
-                    {s.name} ({s.badge})
-                  </option>
-                ))}
-              </select>
+        <div className="settings-modal-backdrop" onClick={() => setShowSettings(false)}>
+          <div className="settings-modal-panel" onClick={(e) => e.stopPropagation()}>
+            <div className="settings-header">
+              <h3>Streaming Servers & Quality</h3>
+              <button type="button" className="drawer-close" onClick={() => setShowSettings(false)}>
+                &times;
+              </button>
             </div>
 
-            <div className="setting-row">
-              <label>Ad & Watermark Shield</label>
-              <div className="shield-toggle-row">
-                <button
-                  className={`toggle-shield-btn ${cleanShieldActive ? 'on' : ''}`}
-                  onClick={() => setCleanShieldActive(!cleanShieldActive)}
-                >
-                  <ShieldCheck size={16} />
-                  <span>{cleanShieldActive ? 'Shield Enabled (Clean View)' : 'Shield Disabled'}</span>
-                </button>
+            <div className="settings-section">
+              <h4>Choose High-Speed Stream Server</h4>
+              <p className="section-hint">If your stream buffers or is slow, switch to a backup server.</p>
+
+              <div className="servers-list">
+                {SERVERS.map(srv => (
+                  <div
+                    key={srv.id}
+                    className={`server-option ${selectedServer === srv.id ? 'active' : ''}`}
+                    onClick={() => {
+                      handleSwitchServer(srv.id);
+                      setShowSettings(false);
+                    }}
+                  >
+                    <div className="server-info">
+                      <Server size={18} className="srv-icon" />
+                      <span className="srv-name">{srv.name}</span>
+                    </div>
+                    <div className="server-badge-wrap">
+                      <span className="srv-badge">{srv.badge}</span>
+                      {selectedServer === srv.id && <Check size={18} className="check-icon" />}
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
 
-            <div className="setting-row">
-              <label>Default Subtitles Language</label>
-              <select
-                value={defaultLang}
-                onChange={(e) => {
-                  setDefaultLang(e.target.value);
-                  setPlayerKey(Date.now());
-                }}
-              >
-                <option value="en">English (Default)</option>
-                <option value="hi">Hindi</option>
-                <option value="es">Spanish</option>
-                <option value="fr">French</option>
-                <option value="de">German</option>
-                <option value="it">Italian</option>
-                <option value="pt">Portuguese</option>
-              </select>
-            </div>
-
-            <div className="setting-row checkbox-row">
-              <label htmlFor="autonext-check">Auto-Play Next Episode</label>
-              <input
-                id="autonext-check"
-                type="checkbox"
-                checked={autoNext}
-                onChange={(e) => setAutoNext(e.target.checked)}
-              />
-            </div>
-
-            <div className="engine-info">
-              <div className="info-badge">Engine: KMOVIZ Universal Clean Player</div>
-              <div className="info-id">Media ID: {mediaId}</div>
+            <div className="settings-section">
+              <h4>Playback Preferences</h4>
+              <div className="pref-toggle-row">
+                <span>Auto-play Next Episode</span>
+                <input
+                  type="checkbox"
+                  checked={autoNext}
+                  onChange={(e) => setAutoNext(e.target.checked)}
+                />
+              </div>
             </div>
           </div>
         </div>
       )}
     </div>
   );
+}
+
+function formatSeconds(secs) {
+  if (!secs) return '0:00';
+  const m = Math.floor(secs / 60);
+  const s = Math.floor(secs % 60);
+  return `${m}:${s < 10 ? '0' : ''}${s}`;
 }
