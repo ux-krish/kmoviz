@@ -66,7 +66,7 @@ export default function Navbar({
 
   return (
     <header className="kmoviz-header-wrapper">
-      <nav ref={navRef} className={`kmoviz-navbar ${isScrolled ? 'scrolled' : ''}`}>
+      <nav ref={navRef} className={`kmoviz-navbar ${isScrolled ? 'scrolled' : ''} ${isSearchOpen || searchQuery ? 'search-open' : ''}`}>
         {/* Main Navbar Bar */}
         <div className="nav-main-bar">
           <div className="nav-left">

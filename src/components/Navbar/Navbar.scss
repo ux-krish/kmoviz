@@ -239,7 +239,7 @@
       border: 1px solid transparent;
       border-radius: 20px;
       padding: 2px;
-      transition: all 0.3s $ease-smooth;
+      transition: all 0.25s $ease-smooth;
 
       .search-btn {
         background: transparent;
@@ -262,9 +262,9 @@
         border: none;
         background: transparent;
         color: #ffffff;
-        font-size: 0.85rem;
+        font-size: 0.88rem;
         outline: none;
-        transition: all 0.3s $ease-smooth;
+        transition: width 0.25s $ease-smooth, opacity 0.2s ease, padding 0.25s ease;
         opacity: 0;
       }
 
@@ -282,21 +282,17 @@
       }
 
       &.open {
-        background: rgba(20, 20, 20, 0.95);
+        background: rgba(24, 24, 24, 0.98);
         border-color: rgba(255, 255, 255, 0.25);
-        box-shadow: 0 0 15px rgba(0, 0, 0, 0.8);
+        box-shadow: 0 0 16px rgba(0, 0, 0, 0.85);
 
         input {
-          width: 220px;
+          width: 230px;
           padding: 0.4rem 0.6rem 0.4rem 0.2rem;
           opacity: 1;
 
-          @include mobile {
-            width: 140px;
-          }
-
-          @include mobile-xs {
-            width: 110px;
+          @include tablet {
+            width: 180px;
           }
         }
       }
@@ -414,6 +410,33 @@
                 font-weight: 700;
               }
             }
+          }
+        }
+      }
+    }
+  }
+
+  /* When search is open on mobile, expand search cleanly across the bar without crowding */
+  &.search-open {
+    @include mobile {
+      .nav-left, .surprise-nav-btn {
+        display: none !important;
+      }
+
+      .nav-right {
+        width: 100%;
+        flex: 1;
+        gap: 0.5rem;
+
+        .nav-search-container.open {
+          flex: 1;
+          width: 100%;
+          border-color: rgba(229, 9, 20, 0.6);
+          box-shadow: 0 0 16px rgba(229, 9, 20, 0.25);
+
+          input {
+            width: 100% !important;
+            font-size: 0.92rem;
           }
         }
       }
