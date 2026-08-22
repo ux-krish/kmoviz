@@ -1,4 +1,4 @@
-import React, { useRef, useState, useEffect } from 'react';
+import React, { useRef, useState, useEffect, useCallback } from 'react';
 import { 
   ChevronLeft, ChevronRight, Flame, Tv, Palette, Globe, 
   Star, Zap, Rocket, Sparkles, Clock, Trophy, Film 
@@ -6,7 +6,11 @@ import {
 import MediaCard from '../MediaCard/MediaCard';
 import Top10Card from '../Top10Card/Top10Card';
 import gsap from 'gsap';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import './MediaRow.scss';
+
+// Register GSAP ScrollTrigger
+gsap.registerPlugin(ScrollTrigger);
 
 // Resolves proper matching Lucide SVG icon for each category row
 function getRowIcon(title = '') {
@@ -38,37 +42,98 @@ export default function MediaRow({
   const rowRef = useRef(null);
   const [isDraggingState, setIsDraggingState] = useState(false);
 
-  // Drag state refs
+  // Drag & wave velocity state refs
   const isDownRef = useRef(false);
   const startXRef = useRef(0);
   const scrollLeftRef = useRef(0);
   const hasDraggedRef = useRef(false);
+  const lastScrollLeftRef = useRef(0);
+  const lastScrollTimeRef = useRef(0);
+  const waveResetTimerRef = useRef(null);
 
-  // High performance in-view cascading animation
+  // ── GSAP ScrollTrigger Vertical Scrub & Wave Entrance ─────────────────────
   useEffect(() => {
     const el = containerRef.current;
-    if (!el) return;
+    const rowEl = rowRef.current;
+    if (!el || !rowEl) return;
 
-    let hasAnimated = false;
-    const observer = new IntersectionObserver((entries) => {
-      entries.forEach(entry => {
-        if (entry.isIntersecting && !hasAnimated) {
-          hasAnimated = true;
-          const cards = rowRef.current?.children || [];
-          if (cards.length > 0) {
-            gsap.fromTo(
-              Array.from(cards).slice(0, 8),
-              { opacity: 0, y: 22, scale: 0.95 },
-              { opacity: 1, y: 0, scale: 1, stagger: 0.04, duration: 0.45, ease: 'power2.out' }
-            );
+    const cards = rowEl.querySelectorAll('.kmoviz-media-card, .top10-card-wrapper');
+    if (!cards || cards.length === 0) return;
+
+    const ctx = gsap.context(() => {
+      // Cinematic Wave & Scrub into view as user scrolls down
+      gsap.fromTo(
+        cards,
+        {
+          y: 45,
+          opacity: 0.15,
+          scale: 0.92,
+          rotateX: 10,
+          filter: 'blur(3px)'
+        },
+        {
+          y: 0,
+          opacity: 1,
+          scale: 1,
+          rotateX: 0,
+          filter: 'blur(0px)',
+          stagger: {
+            each: 0.05,
+            from: 'start',
+            ease: 'power2.out'
+          },
+          duration: 0.8,
+          scrollTrigger: {
+            trigger: el,
+            start: 'top 94%',
+            end: 'top 65%',
+            scrub: 0.8,
+            toggleActions: 'play reverse play reverse'
           }
-          observer.disconnect();
         }
-      });
-    }, { threshold: 0.08 });
+      );
+    }, el);
 
-    observer.observe(el);
-    return () => observer.disconnect();
+    return () => ctx.revert();
+  }, [items]);
+
+  // ── Horizontal Slider Kinetic Scrub Wave on Drag / Scroll ────────────────
+  const handleScrollWave = useCallback(() => {
+    if (!rowRef.current) return;
+    const now = performance.now();
+    const currentScroll = rowRef.current.scrollLeft;
+    const deltaX = currentScroll - (lastScrollLeftRef.current || 0);
+    const dt = Math.max(16, now - (lastScrollTimeRef.current || now));
+    const velocity = deltaX / dt;
+
+    lastScrollLeftRef.current = currentScroll;
+    lastScrollTimeRef.current = now;
+
+    const clampedTilt = Math.max(-12, Math.min(12, velocity * 7));
+    const cards = rowRef.current.querySelectorAll('.kmoviz-media-card, .top10-card-wrapper');
+
+    if (cards.length > 0 && Math.abs(clampedTilt) > 0.4) {
+      gsap.to(cards, {
+        rotateY: clampedTilt,
+        skewX: clampedTilt * -0.25,
+        scale: 0.98,
+        duration: 0.22,
+        ease: 'power1.out',
+        overwrite: 'auto'
+      });
+
+      if (waveResetTimerRef.current) clearTimeout(waveResetTimerRef.current);
+      waveResetTimerRef.current = setTimeout(() => {
+        gsap.to(cards, {
+          rotateY: 0,
+          skewX: 0,
+          scale: 1,
+          duration: 0.5,
+          ease: 'elastic.out(1, 0.45)',
+          overwrite: 'auto'
+        });
+      }, 75);
+    }
   }, []);
 
   if (!items || items.length === 0) return null;
@@ -86,8 +151,9 @@ export default function MediaRow({
 
     gsap.to(rowRef.current, {
       scrollLeft: targetScroll,
-      duration: 0.6,
-      ease: 'power2.out'
+      duration: 0.65,
+      ease: 'power2.out',
+      onUpdate: handleScrollWave
     });
   };
 
@@ -108,10 +174,11 @@ export default function MediaRow({
     const x = e.pageX - rowRef.current.offsetLeft;
     const walk = (x - startXRef.current) * 1.5;
 
-    if (Math.abs(x - startXRef.current) > 8) {
+    if (Math.abs(x - startXRef.current) > 6) {
       if (!isDraggingState) setIsDraggingState(true);
       hasDraggedRef.current = true;
       rowRef.current.scrollLeft = scrollLeftRef.current - walk;
+      handleScrollWave();
     }
   };
 
@@ -152,6 +219,7 @@ export default function MediaRow({
         <div
           className={`row-items-wrapper ${isDraggingState ? 'is-dragging' : ''}`}
           ref={rowRef}
+          onScroll={handleScrollWave}
           onMouseDown={handleMouseDown}
           onMouseMove={handleMouseMove}
           onMouseUp={handleMouseUpOrLeave}

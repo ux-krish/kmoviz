@@ -65,6 +65,8 @@
   .row-slider-container {
     position: relative;
     padding: 0 4%;
+    perspective: 1200px;
+    -webkit-perspective: 1200px;
 
     &:hover {
       .slider-arrow {
@@ -124,6 +126,8 @@
       user-select: none;
       -webkit-overflow-scrolling: touch;
       touch-action: pan-x pan-y;
+      transform-style: preserve-3d;
+      -webkit-transform-style: preserve-3d;
 
       @include mobile {
         gap: 0.5rem;
