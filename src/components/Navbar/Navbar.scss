@@ -106,8 +106,27 @@
       list-style: none;
       gap: 1.35rem;
 
+      @include tablet {
+        gap: 0.9rem;
+      }
+
       @include mobile {
-        display: none;
+        gap: 0.75rem;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+        max-width: 48vw;
+        white-space: nowrap;
+        padding-bottom: 2px;
+
+        &::-webkit-scrollbar {
+          display: none;
+        }
+
+        li {
+          font-size: 0.78rem;
+          flex-shrink: 0;
+        }
       }
 
       li {

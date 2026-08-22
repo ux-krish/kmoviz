@@ -91,27 +91,34 @@
       gap: 0.75rem;
       overflow-x: auto;
       overflow-y: visible;
-      padding: 1.8rem 0;
-      margin: -1.8rem 0;
+      padding: 1.5rem 0;
+      margin: -1.5rem 0;
       scroll-behavior: auto;
       scrollbar-width: none;
       -ms-overflow-style: none;
       cursor: grab;
       user-select: none;
-      -webkit-user-drag: none;
+      -webkit-overflow-scrolling: touch;
+      touch-action: pan-x pan-y;
+
+      @include mobile {
+        gap: 0.5rem;
+        padding: 0.8rem 0;
+        margin: -0.8rem 0;
+      }
+
+      &::-webkit-scrollbar {
+        display: none;
+      }
 
       &.is-dragging {
         cursor: grabbing;
-        cursor: -webkit-grabbing;
+        user-select: none;
         scroll-behavior: auto;
 
         * {
           pointer-events: none; // Prevent unintended hover/clicks while dragging
         }
-      }
-
-      &::-webkit-scrollbar {
-        display: none;
       }
     }
   }

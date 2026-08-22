@@ -100,15 +100,15 @@
 
   .search-results-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(clamp(130px, 18vw, 240px), 1fr));
     gap: 1.25rem;
     row-gap: 2.2rem;
     padding: 0.5rem 0;
 
     @media (max-width: 600px) {
-      grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-      gap: 0.75rem;
-      row-gap: 1.5rem;
+      grid-template-columns: repeat(auto-fill, minmax(clamp(115px, 44vw, 180px), 1fr));
+      gap: 0.65rem;
+      row-gap: 1.25rem;
     }
 
     .kmoviz-media-card {
