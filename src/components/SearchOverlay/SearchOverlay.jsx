@@ -1,11 +1,52 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import MediaCard from '../MediaCard/MediaCard';
-import { Search, Film, Tv, Sparkles, Loader2, Check, X, Filter } from 'lucide-react';
+import { Search, Film, Tv, Sparkles, Loader2, Check, X } from 'lucide-react';
 import { searchGlobalCatalog } from '../../services/movieCatalogService';
 import './SearchOverlay.scss';
 
+// Exact matching rules for genres across TMDB & Metahub catalog
+function matchesItemGenre(item, genreId) {
+  if (!genreId || genreId === 'all') return true;
+
+  const itemGenres = Array.isArray(item.genres)
+    ? item.genres.map((g) => (typeof g === 'object' ? g.name : String(g)).toLowerCase())
+    : typeof item.genres === 'string'
+    ? [item.genres.toLowerCase()]
+    : [];
+
+  if (itemGenres.length === 0) {
+    // Fallback check on title or clean category
+    const title = (item.title || '').toLowerCase();
+    if (genreId === 'animation' && (title.includes('toy story') || title.includes('minion') || title.includes('shrek') || title.includes('inside out') || title.includes('spider-man: across'))) return true;
+    return false;
+  }
+
+  switch (genreId.toLowerCase()) {
+    case 'action':
+      return itemGenres.some((g) => g.includes('action') || g.includes('adventure'));
+    case 'sci-fi':
+      return itemGenres.some((g) => g.includes('sci-fi') || g.includes('science fiction') || g.includes('fantasy'));
+    case 'drama':
+      return itemGenres.some((g) => g.includes('drama') || g.includes('biography'));
+    case 'adventure':
+      return itemGenres.some((g) => g.includes('adventure') || g.includes('action'));
+    case 'mystery':
+      return itemGenres.some((g) => g.includes('mystery') || g.includes('crime') || g.includes('investigation'));
+    case 'animation':
+      return itemGenres.some((g) => g.includes('animation') || g.includes('anime') || g.includes('cartoon') || g.includes('family'));
+    case 'comedy':
+      return itemGenres.some((g) => g.includes('comedy'));
+    case 'horror':
+      return itemGenres.some((g) => g.includes('horror') || g.includes('thriller'));
+    case 'thriller':
+      return itemGenres.some((g) => g.includes('thriller') || g.includes('crime') || g.includes('suspense'));
+    default:
+      return itemGenres.some((g) => g.includes(genreId.toLowerCase()));
+  }
+}
+
 export default function SearchOverlay({
-  query,
+  query = '',
   items: defaultItems = [],
   onPlay,
   onOpenDetail,
@@ -30,6 +71,7 @@ export default function SearchOverlay({
     { id: 'thriller', label: 'Thriller' }
   ];
 
+  // Debounced search for API results
   useEffect(() => {
     if (!query || !query.trim()) {
       setSearchResults([]);
@@ -56,19 +98,32 @@ export default function SearchOverlay({
     };
   }, [query]);
 
-  const activePool = query && query.trim() ? searchResults : defaultItems;
+  // If search query is typed, search from live API results + local catalog matches
+  const activePool = useMemo(() => {
+    if (!query || !query.trim()) return defaultItems;
+    
+    // Combine live results and local matching titles
+    const q = query.toLowerCase().trim();
+    const localMatches = defaultItems.filter(
+      (item) => item.title?.toLowerCase().includes(q) || item.overview?.toLowerCase().includes(q)
+    );
 
-  // Filter items by genre and type robustly
+    const combined = [...searchResults, ...localMatches];
+    const map = new Map();
+    combined.forEach((it) => {
+      const k = it.id || it.imdb_id || it.tmdb_id || it.title;
+      if (k && !map.has(k)) map.set(k, it);
+    });
+    return Array.from(map.values());
+  }, [query, searchResults, defaultItems]);
+
+  // Filter items strictly and correctly based on active selections
   const filteredItems = useMemo(() => {
     return activePool.filter((item) => {
-      // Genre filter
-      const matchesGenre = selectedGenre === 'all' || (
-        Array.isArray(item.genres) 
-          ? item.genres.some(g => String(g).toLowerCase().includes(selectedGenre.toLowerCase()))
-          : typeof item.genres === 'string' && item.genres.toLowerCase().includes(selectedGenre.toLowerCase())
-      ) || (item.overview && item.overview.toLowerCase().includes(selectedGenre.toLowerCase()));
+      // 1. Genre filter check
+      const matchesGenre = matchesItemGenre(item, selectedGenre);
 
-      // Type filter
+      // 2. Type filter check
       const matchesType = selectedType === 'all' || item.type === selectedType;
 
       return matchesGenre && matchesType;
@@ -81,6 +136,7 @@ export default function SearchOverlay({
   };
 
   const hasActiveFilters = selectedGenre !== 'all' || selectedType !== 'all';
+  const activeGenreObj = allGenres.find((g) => g.id === selectedGenre);
 
   return (
     <div className="search-overlay-view">
@@ -98,8 +154,8 @@ export default function SearchOverlay({
             </h2>
             {hasActiveFilters && (
               <span className="active-filter-badge">
-                Filtered by {selectedGenre !== 'all' ? selectedGenre.toUpperCase() : ''}{' '}
-                {selectedType !== 'all' ? `(${selectedType === 'movie' ? 'Movies' : 'TV Shows'})` : ''}
+                Showing: {selectedGenre !== 'all' ? activeGenreObj?.label : 'All Genres'}{' '}
+                {selectedType !== 'all' ? `• ${selectedType === 'movie' ? 'Movies Only' : 'TV Shows Only'}` : ''}
               </span>
             )}
           </div>
@@ -108,7 +164,7 @@ export default function SearchOverlay({
             <span className="results-count">
               {isLoading ? (
                 <span className="loading-tag">
-                  <Loader2 size={16} className="spin" /> Searching 10,000+ titles...
+                  <Loader2 size={16} className="spin" /> Searching...
                 </span>
               ) : (
                 <span className="count-pill">{filteredItems.length} titles</span>
@@ -116,7 +172,7 @@ export default function SearchOverlay({
             </span>
 
             {hasActiveFilters && (
-              <button className="reset-filters-btn" onClick={handleResetFilters}>
+              <button className="reset-filters-btn" onClick={handleResetFilters} title="Reset all filters">
                 <X size={14} />
                 <span>Reset Filters</span>
               </button>
@@ -192,15 +248,15 @@ export default function SearchOverlay({
           <div className="empty-icon-box">
             <Search size={44} />
           </div>
-          <h3>No titles found for your criteria</h3>
+          <h3>No {activeGenreObj?.label || 'matching'} titles found</h3>
           <p>
             {hasActiveFilters
-              ? 'Try resetting the genre or format filters above to see all available movies and series.'
-              : 'Try searching for another movie name (e.g., Dune, Fallout, Gladiator, Spider-Man) or actor.'}
+              ? `No ${selectedType === 'tv' ? 'TV Shows' : selectedType === 'movie' ? 'Movies' : 'titles'} found in the ${activeGenreObj?.label} category. Try switching the filters above.`
+              : 'Try searching for another movie name (e.g., Spider-Man, Stranger Things, Toy Story) or actor.'}
           </p>
           {hasActiveFilters && (
             <button className="btn-empty-reset" onClick={handleResetFilters}>
-              Clear Filters
+              Reset Filters to All
             </button>
           )}
         </div>

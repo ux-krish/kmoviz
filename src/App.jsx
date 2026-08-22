@@ -194,17 +194,30 @@ export default function App() {
     setPlayerState({ item: streamItem, season, episode });
   };
 
-  const allLoadedCatalog = [
-    heroMovie,
-    ...nowPlaying,
-    ...trendingMovies,
-    ...trendingSeries,
-    ...bollywoodMovies,
-    ...topRatedMovies,
-    ...actionMovies,
-    ...scifiMovies,
-    ...CATALOG
-  ];
+  const allLoadedCatalog = useMemo(() => {
+    const rawList = [
+      heroMovie,
+      ...nowPlaying,
+      ...trendingMovies,
+      ...trendingSeries,
+      ...bollywoodMovies,
+      ...topRatedMovies,
+      ...actionMovies,
+      ...scifiMovies,
+      ...animationMovies,
+      ...vsembedFeed,
+      ...CATALOG
+    ].filter(Boolean);
+
+    const map = new Map();
+    rawList.forEach(item => {
+      const key = item.id || item.imdb_id || item.tmdb_id || item.title;
+      if (key && !map.has(key)) {
+        map.set(key, item);
+      }
+    });
+    return Array.from(map.values());
+  }, [heroMovie, nowPlaying, trendingMovies, trendingSeries, bollywoodMovies, topRatedMovies, actionMovies, scifiMovies, animationMovies, vsembedFeed]);
 
   return (
     <div className="app-container">
