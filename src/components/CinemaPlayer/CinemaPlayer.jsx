@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { 
   ArrowLeft, Maximize2, Minimize2, List, RotateCcw, 
-  Play, Sparkles, Server, Check
+  Play, Sparkles 
 } from 'lucide-react';
 import { buildMovieEmbedUrl, buildTvEmbedUrl } from '../../services/vsembedApi';
 import { getPlaybackProgress, savePlaybackProgress } from '../../services/storageService';
@@ -14,8 +14,6 @@ export default function CinemaPlayer({
   onClose,
   onUpdateHistory
 }) {
-  // Toggle between Server 2 (vsembed.su) and Server 3 (vidsrc.me)
-  const [activeServer, setActiveServer] = useState('server2'); // 'server2' | 'server3'
   const [currentSeason, setCurrentSeason] = useState(initialSeason);
   const [currentEpisode, setCurrentEpisode] = useState(initialEpisode);
   const [showEpisodeDrawer, setShowEpisodeDrawer] = useState(false);
@@ -47,28 +45,19 @@ export default function CinemaPlayer({
     }
   }, [rawId]);
 
-  // Generate Embed URL choosing exclusively between Server 2 and Server 3
+  // Exclusively use Server 2 (vsembed.su) with instant autoPlay
   const getEmbedUrl = () => {
-    // ── Server 2: VidSrc Pro (vsembed.su) ──
-    if (activeServer === 'server2') {
-      const id = imdbId || tmdbId || rawId;
-      return isTv
-        ? buildTvEmbedUrl(id, currentSeason, currentEpisode, {
-            autoplay: 1,
-            autonext: autoNext ? 1 : 0,
-            startAt: activeStartAt
-          })
-        : buildMovieEmbedUrl(id, {
-            autoplay: 1,
-            startAt: activeStartAt
-          });
-    }
-
-    // ── Server 3: VidSrc Classic (vidsrc.me) ──
-    const query = imdbId ? `imdb=${imdbId}` : `tmdb=${tmdbId || rawId}`;
+    const id = imdbId || tmdbId || rawId;
     return isTv
-      ? `https://vidsrc.me/embed/tv?${query}&season=${currentSeason}&episode=${currentEpisode}&autoPlay=true`
-      : `https://vidsrc.me/embed/movie?${query}&autoPlay=true`;
+      ? buildTvEmbedUrl(id, currentSeason, currentEpisode, {
+          autoplay: 1,
+          autonext: autoNext ? 1 : 0,
+          startAt: activeStartAt
+        })
+      : buildMovieEmbedUrl(id, {
+          autoplay: 1,
+          startAt: activeStartAt
+        });
   };
 
   const embedUrl = getEmbedUrl();
@@ -161,11 +150,6 @@ export default function CinemaPlayer({
     setPlayerKey(Date.now());
   };
 
-  const handleSwitchServer = (serverKey) => {
-    setActiveServer(serverKey);
-    setPlayerKey(Date.now());
-  };
-
   const toggleFullscreen = () => {
     if (!document.fullscreenElement) {
       playerContainerRef.current?.requestFullscreen?.();
@@ -226,28 +210,6 @@ export default function CinemaPlayer({
         </div>
 
         <div className="bar-right">
-          {/* Server 2 / Server 3 Switcher Pills */}
-          <div className="server-toggle-group">
-            <button
-              type="button"
-              className={`server-pill ${activeServer === 'server2' ? 'active' : ''}`}
-              onClick={() => handleSwitchServer('server2')}
-              title="Switch to Server 2 (VidSrc Pro - 4K)"
-            >
-              <Server size={13} />
-              <span>Server 2</span>
-            </button>
-            <button
-              type="button"
-              className={`server-pill ${activeServer === 'server3' ? 'active' : ''}`}
-              onClick={() => handleSwitchServer('server3')}
-              title="Switch to Server 3 (VidSrc Classic)"
-            >
-              <Server size={13} />
-              <span>Server 3</span>
-            </button>
-          </div>
-
           {isTv && (
             <button
               type="button"
@@ -266,7 +228,7 @@ export default function CinemaPlayer({
         </div>
       </div>
 
-      {/* Embedded Iframe Viewport — Server 2 & 3 Direct Stream */}
+      {/* Embedded Iframe Viewport — Server 2 (vsembed.su) Direct 1-Click Stream */}
       <div className="iframe-viewport">
         <iframe
           ref={iframeRef}
