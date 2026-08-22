@@ -152,13 +152,31 @@ export default function CinemaPlayer({
 
   const toggleFullscreen = () => {
     if (!document.fullscreenElement) {
-      playerContainerRef.current?.requestFullscreen?.();
-      setIsFullscreen(true);
+      playerContainerRef.current?.requestFullscreen?.({ navigationUI: 'hide' }).catch(() => {
+        // Fallback for webkit
+        playerContainerRef.current?.webkitRequestFullscreen?.();
+      });
     } else {
-      document.exitFullscreen?.();
-      setIsFullscreen(false);
+      if (document.exitFullscreen) {
+        document.exitFullscreen().catch(() => {});
+      } else if (document.webkitExitFullscreen) {
+        document.webkitExitFullscreen();
+      }
     }
   };
+
+  useEffect(() => {
+    const handleFsChange = () => {
+      setIsFullscreen(Boolean(document.fullscreenElement || document.webkitFullscreenElement));
+    };
+
+    document.addEventListener('fullscreenchange', handleFsChange);
+    document.addEventListener('webkitfullscreenchange', handleFsChange);
+    return () => {
+      document.removeEventListener('fullscreenchange', handleFsChange);
+      document.removeEventListener('webkitfullscreenchange', handleFsChange);
+    };
+  }, []);
 
   // Keyboard Shortcuts (Esc to close, F for fullscreen)
   useEffect(() => {
